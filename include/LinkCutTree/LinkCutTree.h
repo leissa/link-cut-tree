@@ -11,14 +11,13 @@ public:
 		Node(const T& key) :left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {};
 	};
 	// maybe map key to pointers and do not expose node pointers, or do both
-	Node& createTree(const T& key) {
-		return Node(key);
+	Node* createTree(const T& key) {
+		return new Node(key);
 	}
-	Node* findRoot(Node& v);
-	void link(Node& v, Node& w);
-	void cut(Node& v);
-
-public:
+	Node* findRoot(Node* v);
+	void link(Node* v, Node* w);
+	void cut(Node* v);
+private:
 	void rotR(Node* v) {
 		v->left->parent = v->parent;
 		if (v->parent) {
