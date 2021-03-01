@@ -18,12 +18,6 @@ public:
 		return new Node(key);
 	}
 
-	Node* findRoot(Node* v);
-
-	void link(Node* v, Node* w);
-
-	void cut(Node* v);
-
 private:
 	void rotR(Node* v) {
 		v->left->parent = v->parent;
@@ -115,7 +109,51 @@ private:
 		}
 	}
 
-	void access(Node* v);
+	void access(Node* v) {
+		splay(v);
+		if (v->right) {
+			v->right->isRoot = true; // change v->right's parent pointer to a path-parent pointer
+		}
+		while (v->parent) {
+			splay(v->parent);
+			if (v->parent->right) {
+				v->parent->right->isRoot = true;
+			}
+			v->parent->right = v;
+			v->isRoot = false;
+			splay(v); // single rotation around v->parent giving v the next path-parent pointer
+		}
+	}
+
+public:
+	Node* findRoot(Node* v) {
+		access(v);
+		while (v->left) {
+			v = v->left;
+		}
+		splay(v);
+		return v;
+	}
+
+	void link(Node* v, Node* w) {
+		while (v->parent) {
+			v = v->parent;
+		}
+		access(v); // check why not splay(v)
+		access(w);
+		v->left = w;
+		w->parent = v;
+		w->isRoot = false;
+	}
+
+	void cut(Node* v) {
+		access(v);
+		if (v->left) { // if v is root of the represented tree it has no left child after access and cut does nothing
+			v->left->isRoot = true;
+			v->left->parent = nullptr; // v->left is on preferred path
+			v->left = nullptr;
+		}
+	}
 
 	void printSplayTree(const std::string& prefix, const Node* node, bool isLeft)
 	{
