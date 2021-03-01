@@ -1,6 +1,8 @@
 ﻿#ifndef LINK_CUT_TREE_H
 #define LINK_CUT_TREE_H
 
+#include <iostream>
+
 template<typename T> class LinkCutTree {
 public:
 	struct Node {
@@ -10,13 +12,18 @@ public:
 		bool isRoot;
 		Node(const T& key) :left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {};
 	};
+
 	// maybe map key to pointers and do not expose node pointers, or do both
 	Node* createTree(const T& key) {
 		return new Node(key);
 	}
+
 	Node* findRoot(Node* v);
+
 	void link(Node* v, Node* w);
+
 	void cut(Node* v);
+
 private:
 	void rotR(Node* v) {
 		v->left->parent = v->parent;
@@ -24,7 +31,7 @@ private:
 			if (v->parent->left == v) {
 				v->parent->left = v->left;
 			}
-			else {
+			if (v->parent->right == v) {
 				v->parent->right = v->left;
 			}
 		}
@@ -37,6 +44,10 @@ private:
 			v->left = nullptr;
 		}
 		v->parent->right = v;
+		if (v->isRoot) {
+			v->isRoot = false;
+			v->parent->isRoot = true;
+		}
 	}
 
 	void rotL(Node* v) {
@@ -45,7 +56,7 @@ private:
 			if (v->parent->right == v) {
 				v->parent->right = v->right;
 			}
-			else {
+			if (v->parent->left == v) {
 				v->parent->left = v->right;
 			}
 		}
@@ -58,17 +69,19 @@ private:
 			v->right = nullptr;
 		}
 		v->parent->left = v;
+		if (v->isRoot) {
+			v->isRoot = false;
+			v->parent->isRoot = true;
+		}
 	}
 
-	// make sure to set isRoot on root of tree with v to false before rotations
 	void splay(Node* v) {
-		Node* root = v;
-		while (!root->isRoot) {
-			root = root->parent;
+		Node* temp = v;
+		while (!temp->isRoot) {
+			temp = temp->parent;
 		}
-		root->isRoot = false;
 		// pathParent pointer is null only if root is the root of the represented tree
-		Node* pathParent = root->parent;
+		Node* pathParent = temp->parent;
 		while (v->parent != pathParent) { // v is not root yet
 			// zig
 			if (v->parent->parent == pathParent) {
@@ -100,9 +113,32 @@ private:
 				rotL(v->parent);
 			}
 		}
-		v->isRoot = true;
 	}
-	void expose(Node& v);
+
+	void access(Node* v);
+
+	void printSplayTree(const std::string& prefix, const Node* node, bool isLeft)
+	{
+		std::cout << prefix << "|--" << node->key << (node->isRoot ? "r" : "");
+		if (node->parent) {
+			std::cout << "(" << node->parent->key << ")";
+		}
+		std::cout << std::endl;
+
+		if (node->left) {
+			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->left, true);
+		}
+		if (node->right) {
+			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->right, false);
+		}
+	}
+
+	void printSplayTree(const Node* node) {
+		while (!node->isRoot) {
+			node = node->parent;
+		}
+		printSplayTree("", node, false);
+	}
 };
 
 #endif
