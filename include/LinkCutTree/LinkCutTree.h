@@ -14,12 +14,12 @@ public:
 	};
 
 	// maybe map key to pointers and do not expose node pointers, or do both
-	Node* createTree(const T& key) {
+	static Node* createTree(const T& key) {
 		return new Node(key);
 	}
 
-private:
-	void rotR(Node* v) {
+protected:
+	static void rotR(Node* v) {
 		v->left->parent = v->parent;
 		if (v->parent) {
 			if (v->parent->left == v) {
@@ -44,7 +44,7 @@ private:
 		}
 	}
 
-	void rotL(Node* v) {
+	static void rotL(Node* v) {
 		v->right->parent = v->parent;
 		if (v->parent) {
 			if (v->parent->right == v) {
@@ -69,7 +69,7 @@ private:
 		}
 	}
 
-	void splay(Node* v) {
+	static void splay(Node* v) {
 		Node* temp = v;
 		while (!temp->isRoot) {
 			temp = temp->parent;
@@ -109,7 +109,7 @@ private:
 		}
 	}
 
-	void access(Node* v) {
+	static void access(Node* v) {
 		splay(v);
 		if (v->right) {
 			v->right->isRoot = true; // change v->right's parent pointer to a path-parent pointer
@@ -126,7 +126,7 @@ private:
 	}
 
 public:
-	Node* findRoot(Node* v) {
+	static Node* findRoot(Node* v) {
 		access(v);
 		while (v->left) {
 			v = v->left;
@@ -135,7 +135,7 @@ public:
 		return v;
 	}
 
-	void link(Node* v, Node* w) {
+	static void link(Node* v, Node* w) {
 		while (v->parent) {
 			v = v->parent;
 		}
@@ -146,7 +146,7 @@ public:
 		w->isRoot = false;
 	}
 
-	void cut(Node* v) {
+	static void cut(Node* v) {
 		access(v);
 		if (v->left) { // if v is root of the represented tree it has no left child after access and cut does nothing
 			v->left->isRoot = true;
@@ -155,7 +155,7 @@ public:
 		}
 	}
 
-	void printSplayTree(const std::string& prefix, const Node* node, bool isLeft)
+	static void printSplayTree(const std::string& prefix, const Node* node, bool isLeft)
 	{
 		std::cout << prefix << "|--" << node->key << (node->isRoot ? "r" : "");
 		if (node->parent) {
@@ -163,15 +163,15 @@ public:
 		}
 		std::cout << std::endl;
 
-		if (node->left) {
-			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->left, true);
-		}
 		if (node->right) {
 			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->right, false);
 		}
+		if (node->left) {
+			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->left, true);
+		}
 	}
 
-	void printSplayTree(const Node* node) {
+	static void printSplayTree(const Node* node) {
 		while (!node->isRoot) {
 			node = node->parent;
 		}
