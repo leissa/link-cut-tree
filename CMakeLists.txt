@@ -9,9 +9,14 @@ add_library(LinkCutTree INTERFACE)
 target_include_directories(LinkCutTree INTERFACE "include/LinkCutTree")
 
 enable_testing()
+
 add_executable(TestSplay "test/TestSplay.cpp")
 target_link_libraries(TestSplay LinkCutTree)
 add_test(TestSplayTestTarget TestSplay)
+
+add_executable(TestAccess "test/TestAccess.cpp")
+target_link_libraries(TestAccess LinkCutTree)
+add_test(TestAccessTestTarget TestAccess)
 
 add_executable(Demo "demo/Demo.cpp")
 target_link_libraries(Demo LinkCutTree)

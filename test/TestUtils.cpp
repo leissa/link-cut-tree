@@ -2,6 +2,8 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <ctime>
+#include <map>
 
 using Node = LinkCutTree<int>::Node;
 
@@ -40,6 +42,23 @@ std::vector<Node*> createRandomSplayTree(int a, int b) {
 				}
 			}
 		}
+	}
+	return v;
+}
+
+std::vector<std::vector<Node*>>* createRandomLCT(int n, int a, int b,
+	std::map<Node*, std::vector<Node*>>& backpointers) {
+	auto v = new std::vector<std::vector<Node*>>();
+	v->push_back(createRandomSplayTree(a, b));
+	for (int i = 1; i < n; i++) {
+		std::vector<Node*> path = v->at(rand() % v->size());
+		Node* pathParent = path[rand() % path.size()];
+		v->push_back(createRandomSplayTree(a, b));
+		(*v)[i][0]->parent = pathParent;
+		if (backpointers.count(pathParent) == 0) {
+			backpointers[pathParent] = std::vector<Node*>();
+		}
+		backpointers.at(pathParent).push_back((*v)[i][0]);
 	}
 	return v;
 }

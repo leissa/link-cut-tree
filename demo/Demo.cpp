@@ -1,7 +1,6 @@
-#include "Link-Cut-Tree.h"
+#include "LinkCutTree.h"
 
 int main()
 {
-	std::cout << test << std::endl;
 	return 0;
 }

@@ -2,6 +2,8 @@
 #define LINK_CUT_TREE_H
 
 #include <iostream>
+#include <map>
+#include <vector>
 
 template<typename T> class LinkCutTree {
 public:
@@ -10,6 +12,7 @@ public:
 		T key;
 		// if node is the root of the splay tree then treat the parent pointer as the path-parent pointer
 		bool isRoot;
+		bool operator<(const Node& o)  const { return this > &o; };
 		Node(const T& key) :left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {};
 	};
 
@@ -155,27 +158,36 @@ public:
 		}
 	}
 
-	static void printSplayTree(const std::string& prefix, const Node* node, bool isLeft)
+	static void printSplayTree(const std::string& prefix, Node* node,
+		bool isLeft, std::map<Node*, std::vector<Node*>>* b = nullptr)
 	{
-		std::cout << prefix << "|--" << node->key << (node->isRoot ? "r" : "");
+		std::cout << prefix << (isLeft ? "|->" : "|-<") << node->key << (node->isRoot ? "r" : "");
 		if (node->parent) {
 			std::cout << "(" << node->parent->key << ")";
 		}
 		std::cout << std::endl;
 
 		if (node->right) {
-			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->right, false);
+			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->right, false, b);
+		}
+
+		if (b) {
+			if (b->count(node)) {
+				for (int i = 0; i < b->at(node).size(); i++) {
+					printSplayTree(prefix + "~    ", b->at(node).at(i), true, b);
+				}
+			}
 		}
 		if (node->left) {
-			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->left, true);
+			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->left, true, b);
 		}
 	}
 
-	static void printSplayTree(const Node* node) {
+	static void printSplayTree(Node* node, std::map<Node*, std::vector<Node*>>* b = nullptr) {
 		while (!node->isRoot) {
 			node = node->parent;
 		}
-		printSplayTree("", node, false);
+		printSplayTree("", node, false, b);
 	}
 };
 
