@@ -12,15 +12,13 @@ public:
 		T key;
 		// if node is the root of the splay tree then treat the parent pointer as the path-parent pointer
 		bool isRoot;
+		Node() = default;
 		Node(const T& key) :left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {};
 	};
 
-	// maybe map key to pointers and do not expose node pointers, or do both
-	static Node* createTree(const T& key) {
-		return new Node(key);
-	}
-
 protected:
+	std::map<T, Node> nodes;
+
 	static void rotR(Node* v) {
 		v->left->parent = v->parent;
 		if (v->parent) {
@@ -72,15 +70,9 @@ protected:
 	}
 
 	static void splay(Node* v) {
-		Node* temp = v;
-		while (!temp->isRoot) {
-			temp = temp->parent;
-		}
-		// pathParent pointer is null only if root is the root of the represented tree
-		Node* pathParent = temp->parent;
-		while (v->parent != pathParent) { // v is not root yet
+		while (!v->isRoot) { // v is not root yet
 			// zig
-			if (v->parent->parent == pathParent) {
+			if (v->parent->isRoot) {
 				if (v->parent->left == v) {
 					rotR(v->parent);
 				}
@@ -112,6 +104,28 @@ protected:
 	}
 
 public:
+	LinkCutTree<T>() : nodes(std::map<T, Node>()) {}
+
+	static Node* createTree(const T& key) {
+		return new Node(key);
+	}
+
+	Node* createManagedTree(const T& key) {
+		if (!this->nodes.count(key)) {
+			nodes.insert(std::make_pair(key, Node(key)));
+		}
+		return &(this->nodes[key]);
+	}
+
+	Node* operator[](const T& key) {
+		if (this->nodes.count(key)) {
+			return &(this->nodes[key]);
+		}
+		else {
+			return nullptr;
+		}
+	}
+
 	static void access(Node* v) {
 		splay(v);
 		if (v->right) {

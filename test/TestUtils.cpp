@@ -1,8 +1,6 @@
 #include <LinkCutTree.h>
 #include <vector>
-#include <algorithm>
 #include <random>
-#include <ctime>
 #include <map>
 
 using Node = LinkCutTree<int>::Node;
