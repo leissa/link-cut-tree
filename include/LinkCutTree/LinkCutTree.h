@@ -12,7 +12,6 @@ public:
 		T key;
 		// if node is the root of the splay tree then treat the parent pointer as the path-parent pointer
 		bool isRoot;
-		bool operator<(const Node& o)  const { return this > &o; };
 		Node(const T& key) :left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {};
 	};
 
@@ -112,10 +111,12 @@ protected:
 		}
 	}
 
+public:
 	static void access(Node* v) {
 		splay(v);
 		if (v->right) {
 			v->right->isRoot = true; // change v->right's parent pointer to a path-parent pointer
+			v->right = nullptr;
 		}
 		while (v->parent) {
 			splay(v->parent);
@@ -128,7 +129,6 @@ protected:
 		}
 	}
 
-public:
 	static Node* findRoot(Node* v) {
 		access(v);
 		while (v->left) {
@@ -161,7 +161,7 @@ public:
 	static void printSplayTree(const std::string& prefix, Node* node,
 		bool isLeft, std::map<Node*, std::vector<Node*>>* b = nullptr)
 	{
-		std::cout << prefix << (isLeft ? "|->" : "|-<") << node->key << (node->isRoot ? "r" : "");
+		std::cout << prefix << (isLeft ? "|--" : "|--") << node->key << (node->isRoot ? "r" : "");
 		if (node->parent) {
 			std::cout << "(" << node->parent->key << ")";
 		}
@@ -185,6 +185,13 @@ public:
 
 	static void printSplayTree(Node* node, std::map<Node*, std::vector<Node*>>* b = nullptr) {
 		while (!node->isRoot) {
+			node = node->parent;
+		}
+		printSplayTree("", node, false, b);
+	}
+
+	static void printLCT(Node* node, std::map<Node*, std::vector<Node*>>* b = nullptr) {
+		while (node->parent) {
 			node = node->parent;
 		}
 		printSplayTree("", node, false, b);

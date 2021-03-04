@@ -9,7 +9,7 @@
 class TestSplay : LinkCutTree<int> {
 public:
 	static void randomSplay() {
-		std::vector<Node*> a = createRandomSplayTree(20, 30);
+		std::vector<Node*> a = createRandomSplayTree(20, 30, 0);
 		Node* n = LinkCutTree<int>::createTree(-1);
 		Node* temp = a[0];
 		while (temp->parent) temp = temp->parent;

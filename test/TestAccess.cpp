@@ -8,12 +8,15 @@
 
 void randomLCT() {
 	std::map<Node*, std::vector<Node*>> backpointers;
-	std::vector<std::vector<Node*>>* v = createRandomLCT(4, 5, 10, backpointers);
-	LinkCutTree<int>::printSplayTree(v->at(0)[0], &backpointers);
-	for (int i = 0; i < v->size(); i++) {
-		deleteNodes(&(v->at(i)));
-	}
-	delete v;
+	std::vector<Node*> v = createRandomLCT(4, 5, 10);
+	updateBackpointers(v, backpointers);
+	LinkCutTree<int>::printLCT(v[0], &backpointers);
+	int r = rand() % v.size();
+	std::cout << "\nAccess node with value " << v[r]->key << std::endl << std::endl;
+	LinkCutTree<int>::access(v[r]);
+	updateBackpointers(v, backpointers);
+	LinkCutTree<int>::printLCT(v[0], &backpointers);
+	deleteNodes(&v);
 }
 
 int main() {

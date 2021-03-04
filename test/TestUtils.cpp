@@ -7,12 +7,12 @@
 
 using Node = LinkCutTree<int>::Node;
 
-std::vector<Node*> createRandomSplayTree(int a, int b) {
+std::vector<Node*> createRandomSplayTree(int a, int b, int offset) {
 	std::vector<Node*> v;
 	int n = a + rand() % (b - a + 1);
 
 	for (int i = 0; i < n; i++) {
-		v.push_back(LinkCutTree<int>::createTree(i));
+		v.push_back(LinkCutTree<int>::createTree(i + offset));
 		v[i]->isRoot = false;
 	}
 
@@ -46,21 +46,26 @@ std::vector<Node*> createRandomSplayTree(int a, int b) {
 	return v;
 }
 
-std::vector<std::vector<Node*>>* createRandomLCT(int n, int a, int b,
-	std::map<Node*, std::vector<Node*>>& backpointers) {
-	auto v = new std::vector<std::vector<Node*>>();
-	v->push_back(createRandomSplayTree(a, b));
+std::vector<Node*> createRandomLCT(int n, int a, int b) {
+	std::vector<Node*> v = createRandomSplayTree(a, b, 0);
 	for (int i = 1; i < n; i++) {
-		std::vector<Node*> path = v->at(rand() % v->size());
-		Node* pathParent = path[rand() % path.size()];
-		v->push_back(createRandomSplayTree(a, b));
-		(*v)[i][0]->parent = pathParent;
-		if (backpointers.count(pathParent) == 0) {
-			backpointers[pathParent] = std::vector<Node*>();
-		}
-		backpointers.at(pathParent).push_back((*v)[i][0]);
+		std::vector<Node*> temp = createRandomSplayTree(a, b, i * 10);
+		temp[0]->parent = v[rand() % v.size()];
+		v.insert(v.end(), temp.begin(), temp.end());
 	}
 	return v;
+}
+
+void updateBackpointers(std::vector<Node*>& v, std::map<Node*, std::vector<Node*>>& b) {
+	b.clear();
+	for (int i = 0; i < v.size(); i++) {
+		if (v[i]->isRoot && v[i]->parent) {
+			if (b.count(v[i]->parent) == 0) {
+				b[v[i]->parent] = std::vector<Node*>();
+			}
+			b[v[i]->parent].push_back(v[i]);
+		}
+	}
 }
 
 void deleteNodes(std::vector<Node*>* v) {
