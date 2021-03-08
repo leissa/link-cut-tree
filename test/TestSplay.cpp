@@ -3,7 +3,7 @@
 #include <crtdbg.h>
 #include <LinkCutTree.h>
 #include <vector>
-#include "./TestUtils.cpp"
+#include "Utils.h"
 
 // make test classes friend of LinkCutTree instead
 class TestSplay : LinkCutTree<int> {

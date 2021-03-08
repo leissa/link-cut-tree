@@ -4,7 +4,7 @@
 #include <LinkCutTree.h>
 #include <vector>
 #include <map>
-#include "./TestUtils.cpp"
+#include "Utils.h"
 
 void randomLCT() {
 	std::map<Node*, std::vector<Node*>> backpointers;

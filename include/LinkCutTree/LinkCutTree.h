@@ -153,10 +153,10 @@ public:
 	}
 
 	static void link(Node* v, Node* w) {
-		while (v->parent) {
-			v = v->parent;
+		access(v);
+		if (v->left) {
+			return;
 		}
-		access(v); // check why not splay(v)
 		access(w);
 		v->left = w;
 		w->parent = v;
@@ -185,11 +185,9 @@ public:
 			printSplayTree(prefix + (isLeft ? "|    " : "     "), node->right, false, b);
 		}
 
-		if (b) {
-			if (b->count(node)) {
-				for (int i = 0; i < b->at(node).size(); i++) {
-					printSplayTree(prefix + "~    ", b->at(node).at(i), true, b);
-				}
+		if (b && b->count(node)) {
+			for (int i = 0; i < b->at(node).size(); i++) {
+				printSplayTree(prefix + "~    ", b->at(node).at(i), true, b);
 			}
 		}
 		if (node->left) {
@@ -209,6 +207,26 @@ public:
 			node = node->parent;
 		}
 		printSplayTree("", node, false, b);
+	}
+
+	static int printReprTree(Node* node, std::map<Node*, std::vector<Node*>>* b = nullptr, bool t = true, int depth = 0) {
+		while (t && node->parent) {
+			node = node->parent;
+		}
+		if (node->left) {
+			depth = printReprTree(node->left, b, false, depth);
+		}
+		std::cout << std::string(depth * 4, ' ') << node->key << std::endl;
+		depth++;
+		if (b && b->count(node)) {
+			for (int i = 0; i < b->at(node).size(); i++) {
+				printReprTree(b->at(node).at(i), b, false, depth);
+			}
+		}
+		if (node->right) {
+			depth = printReprTree(node->right, b, false, depth);
+		}
+		return depth;
 	}
 };
 
