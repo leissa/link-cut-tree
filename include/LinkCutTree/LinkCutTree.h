@@ -70,7 +70,7 @@ protected:
 	}
 
 	static void splay(Node* v) {
-		while (!v->isRoot) { // v is not root yet
+		while (!v->isRoot) {
 			// zig
 			if (v->parent->isRoot) {
 				if (v->parent->left == v) {
@@ -152,15 +152,16 @@ public:
 		return v;
 	}
 
-	static void link(Node* v, Node* w) {
+	static bool link(Node* v, Node* w) {
 		access(v);
 		if (v->left) {
-			return;
+			return false; // v is not the root of its represented tree
 		}
 		access(w);
 		v->left = w;
 		w->parent = v;
 		w->isRoot = false;
+		return true;
 	}
 
 	static void cut(Node* v) {
