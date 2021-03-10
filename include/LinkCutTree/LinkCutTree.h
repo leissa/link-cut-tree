@@ -4,120 +4,22 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include "Node.h"
 
 template<typename T> class LinkCutTree {
+private:
+	std::map<T, Node<T>> nodes;
 public:
-	struct Node {
-		Node* left, * right, * parent;
-		T key;
-		// if node is the root of the splay tree then treat the parent pointer as the path-parent pointer
-		bool isRoot;
-		Node() = default;
-		Node(const T& key) :left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {};
-	};
+	LinkCutTree<T>() : nodes(std::map<T, Node<T>>()) {}
 
-protected:
-	std::map<T, Node> nodes;
-
-	static void rotR(Node* v) {
-		v->left->parent = v->parent;
-		if (v->parent) {
-			if (v->parent->left == v) {
-				v->parent->left = v->left;
-			}
-			if (v->parent->right == v) {
-				v->parent->right = v->left;
-			}
-		}
-		v->parent = v->left;
-		if (v->left->right) {
-			v->left->right->parent = v;
-			v->left = v->left->right;
-		}
-		else {
-			v->left = nullptr;
-		}
-		v->parent->right = v;
-		if (v->isRoot) {
-			v->isRoot = false;
-			v->parent->isRoot = true;
-		}
-	}
-
-	static void rotL(Node* v) {
-		v->right->parent = v->parent;
-		if (v->parent) {
-			if (v->parent->right == v) {
-				v->parent->right = v->right;
-			}
-			if (v->parent->left == v) {
-				v->parent->left = v->right;
-			}
-		}
-		v->parent = v->right;
-		if (v->right->left) {
-			v->right->left->parent = v;
-			v->right = v->right->left;
-		}
-		else {
-			v->right = nullptr;
-		}
-		v->parent->left = v;
-		if (v->isRoot) {
-			v->isRoot = false;
-			v->parent->isRoot = true;
-		}
-	}
-
-	static void splay(Node* v) {
-		while (!v->isRoot) {
-			// zig
-			if (v->parent->isRoot) {
-				if (v->parent->left == v) {
-					rotR(v->parent);
-				}
-				else {
-					rotL(v->parent);
-				}
-			}
-			// lefthanded zigzig 
-			else if (v->parent->left == v && v->parent->parent->left == v->parent) {
-				rotR(v->parent->parent);
-				rotR(v->parent);
-			}
-			// righthanded zigzig
-			else if (v->parent->right == v && v->parent->parent->right == v->parent) {
-				rotL(v->parent->parent);
-				rotL(v->parent);
-			}
-			// lefthanded zigzag
-			else if (v->parent->right == v && v->parent->parent->left == v->parent) {
-				rotL(v->parent);
-				rotR(v->parent);
-			}
-			// righthanded zigzag
-			else {
-				rotR(v->parent);
-				rotL(v->parent);
-			}
-		}
-	}
-
-public:
-	LinkCutTree<T>() : nodes(std::map<T, Node>()) {}
-
-	static Node* createTree(const T& key) {
-		return new Node(key);
-	}
-
-	Node* createManagedTree(const T& key) {
+	Node<T>* createTree(const T& key) {
 		if (!this->nodes.count(key)) {
-			nodes.insert(std::make_pair(key, Node(key)));
+			nodes.insert(std::make_pair(key, Node<T>(key)));
 		}
 		return &(this->nodes[key]);
 	}
 
-	Node* operator[](const T& key) {
+	Node<T>* operator[](const T& key) {
 		if (this->nodes.count(key)) {
 			return &(this->nodes[key]);
 		}
@@ -126,55 +28,8 @@ public:
 		}
 	}
 
-	static void access(Node* v) {
-		splay(v);
-		if (v->right) {
-			v->right->isRoot = true; // change v->right's parent pointer to a path-parent pointer
-			v->right = nullptr;
-		}
-		while (v->parent) {
-			splay(v->parent);
-			if (v->parent->right) {
-				v->parent->right->isRoot = true;
-			}
-			v->parent->right = v;
-			v->isRoot = false;
-			splay(v); // single rotation around v->parent giving v the next path-parent pointer
-		}
-	}
-
-	static Node* findRoot(Node* v) {
-		access(v);
-		while (v->left) {
-			v = v->left;
-		}
-		splay(v);
-		return v;
-	}
-
-	static bool link(Node* v, Node* w) {
-		access(v);
-		if (v->left) {
-			return false; // v is not the root of its represented tree
-		}
-		access(w);
-		v->left = w;
-		w->parent = v;
-		w->isRoot = false;
-		return true;
-	}
-
-	static void cut(Node* v) {
-		access(v);
-		if (v->left) { // if v is root of the represented tree it has no left child after access and cut does nothing
-			v->left->isRoot = true;
-			v->left->parent = nullptr; // v->left is on preferred path
-			v->left = nullptr;
-		}
-	}
-
-	static void printSplayTree(const std::string& prefix, Node* node,
-		bool isLeft, std::map<Node*, std::vector<Node*>>* b = nullptr)
+	static void printSplayTree(const std::string& prefix, Node<T>* node,
+		bool isLeft, std::map<Node<T>*, std::vector<Node<T>*>>* b = nullptr)
 	{
 		std::cout << prefix << (isLeft ? "|--" : "|--") << node->key << (node->isRoot ? "r" : "");
 		if (node->parent) {
@@ -196,28 +51,30 @@ public:
 		}
 	}
 
-	static void printSplayTree(Node* node, std::map<Node*, std::vector<Node*>>* b = nullptr) {
+	static void printSplayTree(Node<T>* node, std::map<Node<T>*, std::vector<Node<T>*>>* b = nullptr) {
 		while (!node->isRoot) {
 			node = node->parent;
 		}
 		printSplayTree("", node, false, b);
 	}
 
-	static void printLCT(Node* node, std::map<Node*, std::vector<Node*>>* b = nullptr) {
+	static void printLCT(Node<T>* node, std::map<Node<T>*, std::vector<Node<T>*>>* b = nullptr) {
 		while (node->parent) {
 			node = node->parent;
 		}
 		printSplayTree("", node, false, b);
 	}
 
-	static int printReprTree(Node* node, std::map<Node*, std::vector<Node*>>* b = nullptr, bool t = true, int depth = 0) {
+	static int printReprTree(Node<T>* node, std::map<Node<T>*, std::vector<Node<T>*>>* b = nullptr,
+		bool t = true, int depth = 0)
+	{
 		while (t && node->parent) {
 			node = node->parent;
 		}
 		if (node->left) {
 			depth = printReprTree(node->left, b, false, depth);
 		}
-		std::cout << std::string(depth * 4, ' ') << node->key << std::endl;
+		std::cout << std::string(depth * 4L, ' ') << node->key << std::endl;
 		depth++;
 		if (b && b->count(node)) {
 			for (int i = 0; i < b->at(node).size(); i++) {

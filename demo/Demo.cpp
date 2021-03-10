@@ -2,15 +2,15 @@
 #include <iostream>
 #include <string>
 #include "Utils.h"
+#include "Node.h"
 
 int main()
 {
-	using Node = LinkCutTree<int>::Node;
 	LinkCutTree<int> l;
-	std::vector<Node*> v;
-	std::map<Node*, std::vector<Node*>> backpointers;
+	std::vector<Node<int>*> v;
+	std::map<Node<int>*, std::vector<Node<int>*>> backpointers;
 	for (int i = 0; i < 100; i++) {
-		v.push_back(l.createManagedTree(i));
+		v.push_back(l.createTree(i));
 	}
 	int x, y;
 	while (true) {
@@ -32,19 +32,19 @@ int main()
 		else if (input.compare("link") == 0) {
 			std::cin >> x;
 			std::cin >> y;
-			l.link(l[x], l[y]);
+			l[x]->link(l[x], l[y]);
 		}
 		else if (input.compare("cut") == 0) {
 			std::cin >> x;
-			l.cut(l[x]);
+			l[x]->cut(l[x]);
 		}
 		else if (input.compare("access") == 0) {
 			std::cin >> x;
-			l.access(l[x]);
+			l[x]->access(l[x]);
 		}
 		else if (input.compare("root") == 0) {
 			std::cin >> x;
-			std::cout << l.findRoot(l[x])->key << std::endl;
+			std::cout << l[x]->findRoot(l[x])->key << std::endl;
 		}
 	}
 }

@@ -7,6 +7,7 @@
 #include "Utils.h"
 
 void randomLCT() {
+	/*
 	std::map<Node*, std::vector<Node*>> backpointers;
 	std::vector<Node*> v = createRandomLCT(4, 5, 10);
 	updateBackpointers(v, backpointers);
@@ -17,6 +18,7 @@ void randomLCT() {
 	updateBackpointers(v, backpointers);
 	LinkCutTree<int>::printLCT(v[0], &backpointers);
 	deleteNodes(&v);
+	*/
 }
 
 int main() {
