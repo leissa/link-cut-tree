@@ -9,142 +9,155 @@ template<typename T> class Node {
 public:
 	Node* left, * right, * parent;
 	T key;
-	// if node is the root of the splay tree then treat the parent pointer as the path-parent pointer
 	bool isRoot;
 	Node() = default;
-	Node(const T& key) :left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {};
+	Node(const T& key);
 
-	static void rotR(Node* v) {
-		v->left->parent = v->parent;
-		if (v->parent) {
-			if (v->parent->left == v) {
-				v->parent->left = v->left;
-			}
-			if (v->parent->right == v) {
-				v->parent->right = v->left;
-			}
-		}
-		v->parent = v->left;
-		if (v->left->right) {
-			v->left->right->parent = v;
-			v->left = v->left->right;
-		}
-		else {
-			v->left = nullptr;
-		}
-		v->parent->right = v;
-		if (v->isRoot) {
-			v->isRoot = false;
-			v->parent->isRoot = true;
-		}
-	}
+	void expose();
+	Node* findRoot();
+	bool link(Node* other);
+	void cut();
 
-	static void rotL(Node* v) {
-		v->right->parent = v->parent;
-		if (v->parent) {
-			if (v->parent->right == v) {
-				v->parent->right = v->right;
-			}
-			if (v->parent->left == v) {
-				v->parent->left = v->right;
-			}
-		}
-		v->parent = v->right;
-		if (v->right->left) {
-			v->right->left->parent = v;
-			v->right = v->right->left;
-		}
-		else {
-			v->right = nullptr;
-		}
-		v->parent->left = v;
-		if (v->isRoot) {
-			v->isRoot = false;
-			v->parent->isRoot = true;
-		}
-	}
-
-	static void splay(Node* v) {
-		while (!v->isRoot) {
-			// zig
-			if (v->parent->isRoot) {
-				if (v->parent->left == v) {
-					rotR(v->parent);
-				}
-				else {
-					rotL(v->parent);
-				}
-			}
-			// lefthanded zigzig 
-			else if (v->parent->left == v && v->parent->parent->left == v->parent) {
-				rotR(v->parent->parent);
-				rotR(v->parent);
-			}
-			// righthanded zigzig
-			else if (v->parent->right == v && v->parent->parent->right == v->parent) {
-				rotL(v->parent->parent);
-				rotL(v->parent);
-			}
-			// lefthanded zigzag
-			else if (v->parent->right == v && v->parent->parent->left == v->parent) {
-				rotL(v->parent);
-				rotR(v->parent);
-			}
-			// righthanded zigzag
-			else {
-				rotR(v->parent);
-				rotL(v->parent);
-			}
-		}
-	}
-
-public:
-	static void access(Node* v) {
-		splay(v);
-		if (v->right) {
-			v->right->isRoot = true; // change v->right's parent pointer to a path-parent pointer
-			v->right = nullptr;
-		}
-		while (v->parent) {
-			splay(v->parent);
-			if (v->parent->right) {
-				v->parent->right->isRoot = true;
-			}
-			v->parent->right = v;
-			v->isRoot = false;
-			splay(v); // single rotation around v->parent giving v the next path-parent pointer
-		}
-	}
-
-	static Node* findRoot(Node* v) {
-		access(v);
-		while (v->left) {
-			v = v->left;
-		}
-		splay(v);
-		return v;
-	}
-
-	static bool link(Node* v, Node* w) {
-		access(v);
-		if (v->left) {
-			return false; // v is not the root of its represented tree
-		}
-		access(w);
-		v->left = w;
-		w->parent = v;
-		w->isRoot = false;
-		return true;
-	}
-
-	static void cut(Node* v) {
-		access(v);
-		if (v->left) { // if v is root of the represented tree it has no left child after access and cut does nothing
-			v->left->isRoot = true;
-			v->left->parent = nullptr; // v->left is on preferred path
-			v->left = nullptr;
-		}
-	}
+private:
+	void rotR();
+	void rotL();
+	void splay();
 };
+
+template<typename T> Node<T>::Node(const T& key)
+	: left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {
+}
+
+template<typename T> void Node<T>::expose() {
+	splay();
+	if (right) {
+		right->isRoot = true; // change right's parent pointer to a path-parent pointer
+		right = nullptr;
+	}
+	while (parent) {
+		parent->splay();
+		if (parent->right) {
+			parent->right->isRoot = true;
+		}
+		parent->right = this;
+		isRoot = false;
+		splay(); // single rotation around parent giving v the next path-parent pointer
+	}
+}
+
+template<typename T> Node<T>* Node<T>::findRoot() {
+	expose();
+	Node* v = this;
+	while (v->left) {
+		v = v->left;
+	}
+	v->splay();
+	return v;
+}
+
+template<typename T> bool Node<T>::link(Node<T>* other) {
+	expose();
+	if (left) {
+		return false; // v is not the root of its represented tree
+	}
+	other->expose();
+	left = other;
+	other->parent = this;
+	other->isRoot = false;
+	return true;
+}
+
+template<typename T> void Node<T>::cut() {
+	expose();
+	if (left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
+		left->isRoot = true;
+		left->parent = nullptr; // left is on preferred path
+		left = nullptr;
+	}
+}
+
+template<typename T> void Node<T>::rotR() {
+	left->parent = parent;
+	if (parent) {
+		if (parent->left == this) {
+			parent->left = left;
+		}
+		if (parent->right == this) {
+			parent->right = left;
+		}
+	}
+	parent = left;
+	if (left->right) {
+		left->right->parent = this;
+		left = left->right;
+	}
+	else {
+		left = nullptr;
+	}
+	parent->right = this;
+	if (isRoot) {
+		isRoot = false;
+		parent->isRoot = true;
+	}
+}
+
+template<typename T> void Node<T>::rotL() {
+	right->parent = parent;
+	if (parent) {
+		if (parent->right == this) {
+			parent->right = right;
+		}
+		if (parent->left == this) {
+			parent->left = right;
+		}
+	}
+	parent = right;
+	if (right->left) {
+		right->left->parent = this;
+		right = right->left;
+	}
+	else {
+		right = nullptr;
+	}
+	parent->left = this;
+	if (isRoot) {
+		isRoot = false;
+		parent->isRoot = true;
+	}
+}
+
+template<typename T> void Node<T>::splay() {
+	while (!isRoot) {
+		// zig
+		if (parent->isRoot) {
+			if (parent->left == this) {
+				parent->rotR();
+			}
+			else {
+				parent->rotL();
+			}
+		}
+		// lefthanded zigzig 
+		else if (parent->left == this && parent->parent->left == parent) {
+			parent->parent->rotR();
+			parent->rotR();
+		}
+		// righthanded zigzig
+		else if (parent->right == this && parent->parent->right == parent) {
+			parent->parent->rotL();
+			parent->rotL();
+		}
+		// lefthanded zigzag
+		else if (parent->right == this && parent->parent->left == parent) {
+			parent->rotL();
+			parent->rotR();
+		}
+		// righthanded zigzag
+		else {
+			parent->rotR();
+			parent->rotL();
+		}
+	}
+}
 
 #endif

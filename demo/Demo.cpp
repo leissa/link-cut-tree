@@ -32,19 +32,19 @@ int main()
 		else if (input.compare("link") == 0) {
 			std::cin >> x;
 			std::cin >> y;
-			l[x]->link(l[x], l[y]);
+			l[x]->link(l[y]);
 		}
 		else if (input.compare("cut") == 0) {
 			std::cin >> x;
-			l[x]->cut(l[x]);
+			l[x]->cut();
 		}
-		else if (input.compare("access") == 0) {
+		else if (input.compare("expose") == 0) {
 			std::cin >> x;
-			l[x]->access(l[x]);
+			l[x]->expose();
 		}
 		else if (input.compare("root") == 0) {
 			std::cin >> x;
-			std::cout << l[x]->findRoot(l[x])->key << std::endl;
+			std::cout << l[x]->findRoot()->key << std::endl;
 		}
 	}
 }
