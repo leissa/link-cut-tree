@@ -1,7 +1,6 @@
 #ifndef LINK_CUT_TREE_NODE_H
 #define LINK_CUT_TREE_NODE_H
 
-#include <iostream>
 #include <map>
 #include <vector>
 
@@ -9,7 +8,7 @@ template<typename T> class Node {
 public:
 	Node* left, * right, * parent;
 	T key;
-	bool isRoot;
+	bool isRoot; // refers to aux tree
 	Node() = default;
 	Node(const T& key);
 
