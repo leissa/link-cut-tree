@@ -13,9 +13,10 @@ public:
 	Node(const T& key);
 
 	void expose();
-	Node* findRoot();
 	bool link(Node* other);
 	void cut();
+	Node* findRoot();
+	Node* lowestCommonAncestor(Node* other);
 
 private:
 	void rotR();
@@ -52,6 +53,29 @@ template<typename T> Node<T>* Node<T>::findRoot() {
 	}
 	v->splay();
 	return v;
+}
+
+template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* other) {
+	Node* root = this->findRoot();
+	Node* otherRoot = other->findRoot();
+	if (root != otherRoot) {
+		return nullptr;
+	}
+	else if (root == this || other == this) {
+		return this;
+	}
+	else if (root == other) {
+		return other;
+	}
+	else {
+		this->expose();
+		other->expose();
+		Node* lca = this;
+		while (!lca->isRoot) {
+			lca = lca->parent;
+		}
+		return lca->parent;
+	}
 }
 
 template<typename T> bool Node<T>::link(Node<T>* other) {

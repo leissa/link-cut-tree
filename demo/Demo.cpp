@@ -46,5 +46,11 @@ int main()
 			std::cin >> x;
 			std::cout << l[x]->findRoot()->key << std::endl;
 		}
+		else if (input.compare("lca") == 0) {
+			std::cin >> x;
+			std::cin >> y;
+			auto lca = l[x]->lowestCommonAncestor(l[y]);
+			std::cout << (lca ? lca->key : -1) << std::endl;
+		}
 	}
 }

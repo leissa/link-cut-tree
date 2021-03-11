@@ -26,7 +26,7 @@ private:
 	std::map<T, Node<T>> nodes;
 };
 
-template<typename T> LinkCutTree<T>::LinkCutTree<T>() : nodes(std::map<T, Node<T>>()) {}
+template<typename T> LinkCutTree<T>::LinkCutTree() : nodes(std::map<T, Node<T>>()) {}
 
 template<typename T> Node<T>* LinkCutTree<T>::createTree(const T& key)
 {
