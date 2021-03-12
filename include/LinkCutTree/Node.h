@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <bitset>
 
 template<typename T> class Node {
 public:
@@ -13,19 +14,29 @@ public:
 	Node(const T& key);
 
 	void expose();
-	bool link(Node* other);
+	bool link(Node* other, bool positional = false, bool placeLeft = true);
 	void cut();
 	Node* findRoot();
 	Node* lowestCommonAncestor(Node* other);
 
+	enum flagType { // maybe only include in dedicated subclass and restrict regular link
+		IS_LEFT_CHILD,
+		IS_RIGHT_CHILD,
+		HAS_LEFT_CHILD,
+		HAS_RIGHT_CHILD,
+	};
+	void setFlag(flagType type, bool value = 1);
+	bool getFlag(flagType type);
+
 private:
+	std::bitset<4> _flags;
 	void rotR();
 	void rotL();
 	void splay();
 };
 
 template<typename T> Node<T>::Node(const T& key)
-	: left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true) {
+	: left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true), _flags(0) {
 }
 
 template<typename T> void Node<T>::expose() {
@@ -55,6 +66,10 @@ template<typename T> Node<T>* Node<T>::findRoot() {
 	return v;
 }
 
+/*
+* Find the lowest common ancestor between this Node and Node other.
+* If this and other are not on the same represented tree nullptr is returned.
+*/
 template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* other) {
 	Node* root = this->findRoot();
 	Node* otherRoot = other->findRoot();
@@ -78,7 +93,25 @@ template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* other) {
 	}
 }
 
-template<typename T> bool Node<T>::link(Node<T>* other) {
+template<typename T> void Node<T>::setFlag(flagType type, bool value) {
+	_flags.set(type, value);
+}
+
+template<typename T> bool Node<T>::getFlag(flagType type) {
+	return _flags[type];
+}
+
+/*
+* Link the represented tree that has this node as its root to an arbitrary node in
+* another tree. If this is not the root of the represened tree that it belongs to,
+* false is returned. This method assumes that this and other are not on the same
+* represented tree. Returns true on success.
+*/
+template<typename T> bool Node<T>::link(Node<T>* other, bool positional, bool placeLeft) {
+	if (positional && other->getFlag(HAS_LEFT_CHILD) && placeLeft ||
+		other->getFlag(HAS_RIGHT_CHILD) && !placeLeft) {
+		return false;
+	}
 	expose();
 	if (left) {
 		return false; // v is not the root of its represented tree
@@ -87,13 +120,36 @@ template<typename T> bool Node<T>::link(Node<T>* other) {
 	left = other;
 	other->parent = this;
 	other->isRoot = false;
+	if (positional) {
+		if (placeLeft) {
+			other->setFlag(HAS_LEFT_CHILD);
+			this->setFlag(IS_LEFT_CHILD);
+		}
+		else {
+			other->setFlag(HAS_RIGHT_CHILD);
+			this->setFlag(IS_RIGHT_CHILD);
+		}
+	}
 	return true;
 }
 
+/*
+* Remove the subtree of the represented tree that has this node as its root,
+* creating a new represented tree. If this is already the root of the represented
+* tree that this belongs to, this method has no effect on the represented tree.
+*/
 template<typename T> void Node<T>::cut() {
 	expose();
 	if (left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
 		left->isRoot = true;
+		if (left->getFlag(HAS_LEFT_CHILD) && this->getFlag(IS_LEFT_CHILD)) {
+			left->setFlag(HAS_LEFT_CHILD, 0);
+			this->setFlag(IS_LEFT_CHILD, 0);
+		}
+		if (left->getFlag(HAS_RIGHT_CHILD) && this->getFlag(IS_RIGHT_CHILD)) {
+			left->setFlag(HAS_RIGHT_CHILD, 0);
+			this->setFlag(IS_RIGHT_CHILD, 0);
+		}
 		left->parent = nullptr; // left is on preferred path
 		left = nullptr;
 	}

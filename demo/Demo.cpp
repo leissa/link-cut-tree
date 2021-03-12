@@ -34,6 +34,16 @@ int main()
 			std::cin >> y;
 			l[x]->link(l[y]);
 		}
+		else if (input.compare("ll") == 0) {
+			std::cin >> x;
+			std::cin >> y;
+			l[x]->link(l[y], true, true);
+		}
+		else if (input.compare("lr") == 0) {
+			std::cin >> x;
+			std::cin >> y;
+			l[x]->link(l[y], true, false);
+		}
 		else if (input.compare("cut") == 0) {
 			std::cin >> x;
 			l[x]->cut();
@@ -51,6 +61,13 @@ int main()
 			std::cin >> y;
 			auto lca = l[x]->lowestCommonAncestor(l[y]);
 			std::cout << (lca ? lca->key : -1) << std::endl;
+		}
+		else if (input.compare("info") == 0) {
+			std::cin >> x;
+			for (int i = 0; i < 4; i++) {
+				std::cout << l[x]->getFlag(static_cast<Node<int>::flagType>(3-i));
+			}
+			std::cout << std::endl;
 		}
 	}
 }
