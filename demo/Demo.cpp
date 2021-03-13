@@ -54,13 +54,13 @@ int main()
 		}
 		else if (input.compare("root") == 0) {
 			std::cin >> x;
-			std::cout << l[x]->findRoot()->key << std::endl;
+			std::cout << l[x]->findRoot()->getKey() << std::endl;
 		}
 		else if (input.compare("lca") == 0) {
 			std::cin >> x;
 			std::cin >> y;
 			auto lca = l[x]->lowestCommonAncestor(l[y]);
-			std::cout << (lca ? lca->key : -1) << std::endl;
+			std::cout << (lca ? lca->getKey() : -1) << std::endl;
 		}
 		else if (input.compare("info") == 0) {
 			std::cin >> x;

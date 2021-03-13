@@ -7,11 +7,20 @@
 
 template<typename T> class Node {
 public:
-	Node* left, * right, * parent;
-	T key;
-	bool isRoot; // refers to aux tree
 	Node() = default;
 	Node(const T& key);
+
+	T& getKey();
+	bool isRoot() const;
+	void setRoot(bool aValue);
+
+	Node* left() const; // look for alt. getter/setter model where setters are not effectively redundant
+	Node* right() const; // or return pointers to const and disallow setting pointers from outside Node class
+	Node* parent() const; // -> and change util class accordingly
+
+	void setLeft(Node* aLeft);
+	void setRight(Node* aRight);
+	void setParent(Node* aParent);
 
 	void expose();
 	bool link(Node* other, bool positional = false, bool placeLeft = true);
@@ -25,10 +34,13 @@ public:
 		HAS_LEFT_CHILD,
 		HAS_RIGHT_CHILD,
 	};
-	void setFlag(flagType type, bool value = 1);
+	void setFlag(flagType type, bool value = true);
 	bool getFlag(flagType type);
 
 private:
+	Node* _left, * _right, * _parent;
+	T _key;
+	bool _isRoot; // refers to aux tree
 	std::bitset<4> _flags;
 	void rotR();
 	void rotL();
@@ -36,22 +48,22 @@ private:
 };
 
 template<typename T> Node<T>::Node(const T& key)
-	: left(nullptr), right(nullptr), parent(nullptr), key(key), isRoot(true), _flags(0) {
+	: _left(nullptr), _right(nullptr), _parent(nullptr), _key(key), _isRoot(true), _flags(0) {
 }
 
 template<typename T> void Node<T>::expose() {
 	splay();
-	if (right) {
-		right->isRoot = true; // change right's parent pointer to a path-parent pointer
-		right = nullptr;
+	if (_right) {
+		_right->_isRoot = true; // change right's parent pointer to a path-parent pointer
+		_right = nullptr;
 	}
-	while (parent) {
-		parent->splay();
-		if (parent->right) {
-			parent->right->isRoot = true;
+	while (_parent) {
+		_parent->splay();
+		if (_parent->_right) {
+			_parent->_right->_isRoot = true;
 		}
-		parent->right = this;
-		isRoot = false;
+		_parent->_right = this;
+		_isRoot = false;
 		splay(); // single rotation around parent giving v the next path-parent pointer
 	}
 }
@@ -59,8 +71,8 @@ template<typename T> void Node<T>::expose() {
 template<typename T> Node<T>* Node<T>::findRoot() {
 	expose();
 	Node* v = this;
-	while (v->left) {
-		v = v->left;
+	while (v->_left) {
+		v = v->_left;
 	}
 	v->splay();
 	return v;
@@ -86,10 +98,10 @@ template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* other) {
 		this->expose();
 		other->expose();
 		Node* lca = this;
-		while (!lca->isRoot) {
-			lca = lca->parent;
+		while (!lca->_isRoot) {
+			lca = lca->_parent;
 		}
-		return lca->parent;
+		return lca->_parent;
 	}
 }
 
@@ -113,13 +125,13 @@ template<typename T> bool Node<T>::link(Node<T>* other, bool positional, bool pl
 		return false;
 	}
 	expose();
-	if (left) {
+	if (_left) {
 		return false; // v is not the root of its represented tree
 	}
 	other->expose();
-	left = other;
-	other->parent = this;
-	other->isRoot = false;
+	_left = other;
+	other->_parent = this;
+	other->_isRoot = false;
 	if (positional) {
 		if (placeLeft) {
 			other->setFlag(HAS_LEFT_CHILD);
@@ -140,103 +152,139 @@ template<typename T> bool Node<T>::link(Node<T>* other, bool positional, bool pl
 */
 template<typename T> void Node<T>::cut() {
 	expose();
-	if (left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
-		left->isRoot = true;
-		if (left->getFlag(HAS_LEFT_CHILD) && this->getFlag(IS_LEFT_CHILD)) {
-			left->setFlag(HAS_LEFT_CHILD, 0);
+	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
+		_left->_isRoot = true;
+		if (_left->getFlag(HAS_LEFT_CHILD) && this->getFlag(IS_LEFT_CHILD)) {
+			_left->setFlag(HAS_LEFT_CHILD, 0);
 			this->setFlag(IS_LEFT_CHILD, 0);
 		}
-		if (left->getFlag(HAS_RIGHT_CHILD) && this->getFlag(IS_RIGHT_CHILD)) {
-			left->setFlag(HAS_RIGHT_CHILD, 0);
+		if (_left->getFlag(HAS_RIGHT_CHILD) && this->getFlag(IS_RIGHT_CHILD)) {
+			_left->setFlag(HAS_RIGHT_CHILD, 0);
 			this->setFlag(IS_RIGHT_CHILD, 0);
 		}
-		left->parent = nullptr; // left is on preferred path
-		left = nullptr;
+		_left->_parent = nullptr; // left is on preferred path
+		_left = nullptr;
 	}
 }
 
 template<typename T> void Node<T>::rotR() {
-	left->parent = parent;
-	if (parent) {
-		if (parent->left == this) {
-			parent->left = left;
+	_left->_parent = _parent;
+	if (_parent) {
+		if (_parent->_left == this) {
+			_parent->_left = _left;
 		}
-		if (parent->right == this) {
-			parent->right = left;
+		if (_parent->_right == this) {
+			_parent->_right = _left;
 		}
 	}
-	parent = left;
-	if (left->right) {
-		left->right->parent = this;
-		left = left->right;
+	_parent = _left;
+	if (_left->_right) {
+		_left->_right->_parent = this;
+		_left = _left->_right;
 	}
 	else {
-		left = nullptr;
+		_left = nullptr;
 	}
-	parent->right = this;
-	if (isRoot) {
-		isRoot = false;
-		parent->isRoot = true;
+	_parent->_right = this;
+	if (_isRoot) {
+		_isRoot = false;
+		_parent->_isRoot = true;
 	}
 }
 
 template<typename T> void Node<T>::rotL() {
-	right->parent = parent;
-	if (parent) {
-		if (parent->right == this) {
-			parent->right = right;
+	_right->_parent = _parent;
+	if (_parent) {
+		if (_parent->_right == this) {
+			_parent->_right = _right;
 		}
-		if (parent->left == this) {
-			parent->left = right;
+		if (_parent->_left == this) {
+			_parent->_left = _right;
 		}
 	}
-	parent = right;
-	if (right->left) {
-		right->left->parent = this;
-		right = right->left;
+	_parent = _right;
+	if (_right->_left) {
+		_right->_left->_parent = this;
+		_right = _right->_left;
 	}
 	else {
-		right = nullptr;
+		_right = nullptr;
 	}
-	parent->left = this;
-	if (isRoot) {
-		isRoot = false;
-		parent->isRoot = true;
+	_parent->_left = this;
+	if (_isRoot) {
+		_isRoot = false;
+		_parent->_isRoot = true;
 	}
 }
 
 template<typename T> void Node<T>::splay() {
-	while (!isRoot) {
+	while (!_isRoot) {
 		// zig
-		if (parent->isRoot) {
-			if (parent->left == this) {
-				parent->rotR();
+		if (_parent->_isRoot) {
+			if (_parent->_left == this) {
+				_parent->rotR();
 			}
 			else {
-				parent->rotL();
+				_parent->rotL();
 			}
 		}
 		// lefthanded zigzig 
-		else if (parent->left == this && parent->parent->left == parent) {
-			parent->parent->rotR();
-			parent->rotR();
+		else if (_parent->_left == this && _parent->_parent->_left == _parent) {
+			_parent->_parent->rotR();
+			_parent->rotR();
 		}
 		// righthanded zigzig
-		else if (parent->right == this && parent->parent->right == parent) {
-			parent->parent->rotL();
-			parent->rotL();
+		else if (_parent->_right == this && _parent->_parent->_right == _parent) {
+			_parent->_parent->rotL();
+			_parent->rotL();
 		}
 		// lefthanded zigzag
-		else if (parent->right == this && parent->parent->left == parent) {
-			parent->rotL();
-			parent->rotR();
+		else if (_parent->_right == this && _parent->_parent->_left == _parent) {
+			_parent->rotL();
+			_parent->rotR();
 		}
 		// righthanded zigzag
 		else {
-			parent->rotR();
-			parent->rotL();
+			_parent->rotR();
+			_parent->rotL();
 		}
 	}
+}
+
+template<typename T> Node<T>* Node<T>::left() const {
+	return _left;
+}
+
+template<typename T> Node<T>* Node<T>::right() const {
+	return _right;
+}
+
+template<typename T> Node<T>* Node<T>::parent() const {
+	return _parent;
+}
+
+template<typename T> void Node<T>::setLeft(Node* aLeft) {
+	_left = aLeft;
+}
+
+template<typename T> void Node<T>::setRight(Node* aRight) {
+	_right = aRight;
+}
+
+template<typename T> void Node<T>::setParent(Node* aParent) {
+	_parent = aParent;
+}
+
+template<typename T> T& Node<T>::getKey() {
+	return _key;
+}
+
+template<typename T> bool Node<T>::isRoot() const {
+	return _isRoot;
+}
+
+template<typename T> void Node<T>::setRoot(bool aValue) {
+	_isRoot = aValue;
 }
 
 #endif

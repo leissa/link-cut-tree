@@ -49,14 +49,14 @@ template<typename T> Node<T>* LinkCutTree<T>::operator[](const T& key)
 template<typename T> void LinkCutTree<T>::printSplayTree(const std::string& prefix, Node<T>* node,
 	bool isLeft, std::map<Node<T>*, std::vector<Node<T>*>>* b)
 {
-	std::cout << prefix << (isLeft ? "|--" : "|--") << node->key << (node->isRoot ? "r" : "");
-	if (node->parent) {
-		std::cout << "(" << node->parent->key << ")";
+	std::cout << prefix << (isLeft ? "|--" : "|--") << node->getKey() << (node->isRoot() ? "r" : "");
+	if (node->parent()) {
+		std::cout << "(" << node->parent()->getKey() << ")";
 	}
 	std::cout << std::endl;
 
-	if (node->right) {
-		printSplayTree(prefix + (isLeft ? "|    " : "     "), node->right, false, b);
+	if (node->right()) {
+		printSplayTree(prefix + (isLeft ? "|    " : "     "), node->right(), false, b);
 	}
 
 	if (b && b->count(node)) {
@@ -64,16 +64,16 @@ template<typename T> void LinkCutTree<T>::printSplayTree(const std::string& pref
 			printSplayTree(prefix + "~    ", b->at(node).at(i), true, b);
 		}
 	}
-	if (node->left) {
-		printSplayTree(prefix + (isLeft ? "|    " : "     "), node->left, true, b);
+	if (node->left()) {
+		printSplayTree(prefix + (isLeft ? "|    " : "     "), node->left(), true, b);
 	}
 }
 
 template<typename T> void LinkCutTree<T>::printSplayTree(Node<T>* node,
 	std::map<Node<T>*, std::vector<Node<T>*>>* b)
 {
-	while (!node->isRoot) {
-		node = node->parent;
+	while (!node->_isRoot) {
+		node = node->parent();
 	}
 	printSplayTree("", node, false, b);
 }
@@ -81,8 +81,8 @@ template<typename T> void LinkCutTree<T>::printSplayTree(Node<T>* node,
 template<typename T> void LinkCutTree<T>::printLCT(Node<T>* node,
 	std::map<Node<T>*, std::vector<Node<T>*>>* b)
 {
-	while (node->parent) {
-		node = node->parent;
+	while (node->parent()) {
+		node = node->parent();
 	}
 	printSplayTree("", node, false, b);
 }
@@ -90,21 +90,21 @@ template<typename T> void LinkCutTree<T>::printLCT(Node<T>* node,
 template<typename T> int LinkCutTree<T>::printReprTree(Node<T>* node,
 	std::map<Node<T>*, std::vector<Node<T>*>>* b, bool t, int depth)
 {
-	while (t && node->parent) {
-		node = node->parent;
+	while (t && node->parent()) {
+		node = node->parent();
 	}
-	if (node->left) {
-		depth = printReprTree(node->left, b, false, depth);
+	if (node->left()) {
+		depth = printReprTree(node->left(), b, false, depth);
 	}
-	std::cout << std::string(depth * 4L, ' ') << node->key << std::endl;
+	std::cout << std::string(depth * 4L, ' ') << node->getKey() << std::endl;
 	depth++;
 	if (b && b->count(node)) {
 		for (int i = 0; i < b->at(node).size(); i++) {
 			printReprTree(b->at(node).at(i), b, false, depth);
 		}
 	}
-	if (node->right) {
-		depth = printReprTree(node->right, b, false, depth);
+	if (node->right()) {
+		depth = printReprTree(node->right(), b, false, depth);
 	}
 	return depth;
 }
