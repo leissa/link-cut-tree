@@ -37,12 +37,12 @@ int main()
 		else if (input.compare("ll") == 0) {
 			std::cin >> x;
 			std::cin >> y;
-			l[x]->link(l[y], true, true);
+			l[x]->linkLeft(l[y]);
 		}
 		else if (input.compare("lr") == 0) {
 			std::cin >> x;
 			std::cin >> y;
-			l[x]->link(l[y], true, false);
+			l[x]->linkRight(l[y]);
 		}
 		else if (input.compare("cut") == 0) {
 			std::cin >> x;

@@ -11,6 +11,9 @@ public:
 	Node(const T& key);
 
 	T& getKey();
+	void expose();
+
+	// the following methods refer to the auxiliary tree
 	bool isRoot() const;
 	void setRoot(bool aValue);
 
@@ -22,11 +25,16 @@ public:
 	void setRight(Node* aRight);
 	void setParent(Node* aParent);
 
-	void expose();
-	bool link(Node* other, bool positional = false, bool placeLeft = true);
+	// the following refer to the represented tree (including all types of flags)
+	bool link(Node* aOther);
+	bool linkLeft(Node* aOther);
+	bool linkRight(Node* aOther);
+
 	void cut();
+
 	Node* findRoot();
-	Node* lowestCommonAncestor(Node* other);
+	Node* findParent();
+	Node* lowestCommonAncestor(Node* aOther);
 
 	enum flagType { // maybe only include in dedicated subclass and restrict regular link
 		IS_LEFT_CHILD,
@@ -34,27 +42,27 @@ public:
 		HAS_LEFT_CHILD,
 		HAS_RIGHT_CHILD,
 	};
-	void setFlag(flagType type, bool value = true);
-	bool getFlag(flagType type);
+	void setFlag(flagType aType, bool aValue = true);
+	bool getFlag(flagType aType);
 
 private:
 	Node* _left, * _right, * _parent;
 	T _key;
-	bool _isRoot; // refers to aux tree
+	bool _isRoot;
 	std::bitset<4> _flags;
 	void rotR();
 	void rotL();
 	void splay();
 };
 
-template<typename T> Node<T>::Node(const T& key)
-	: _left(nullptr), _right(nullptr), _parent(nullptr), _key(key), _isRoot(true), _flags(0) {
+template<typename T> Node<T>::Node(const T& aKey)
+	: _left(nullptr), _right(nullptr), _parent(nullptr), _key(aKey), _isRoot(true), _flags(0) {
 }
 
 template<typename T> void Node<T>::expose() {
 	splay();
 	if (_right) {
-		_right->_isRoot = true; // change right's parent pointer to a path-parent pointer
+		_right->_isRoot = true;
 		_right = nullptr;
 	}
 	while (_parent) {
@@ -70,47 +78,46 @@ template<typename T> void Node<T>::expose() {
 
 template<typename T> Node<T>* Node<T>::findRoot() {
 	expose();
-	Node* v = this;
-	while (v->_left) {
-		v = v->_left;
+	Node* lRoot = this;
+	while (lRoot->_left) {
+		lRoot = lRoot->_left;
 	}
-	v->splay();
-	return v;
+	lRoot->splay();
+	return lRoot;
 }
 
 /*
 * Find the lowest common ancestor between this Node and Node other.
 * If this and other are not on the same represented tree nullptr is returned.
 */
-template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* other) {
-	Node* root = this->findRoot();
-	Node* otherRoot = other->findRoot();
-	if (root != otherRoot) {
+template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* aOther) {
+	Node* lRoot = this->findRoot();
+	if (lRoot != aOther->findRoot()) {
 		return nullptr;
 	}
-	else if (root == this || other == this) {
+	else if (lRoot == this || aOther == this) {
 		return this;
 	}
-	else if (root == other) {
-		return other;
+	else if (lRoot == aOther) {
+		return aOther;
 	}
 	else {
 		this->expose();
-		other->expose();
-		Node* lca = this;
-		while (!lca->_isRoot) {
-			lca = lca->_parent;
+		aOther->expose();
+		Node* lLca = this;
+		while (!lLca->_isRoot) {
+			lLca = lLca->_parent;
 		}
-		return lca->_parent;
+		return lLca->_parent;
 	}
 }
 
-template<typename T> void Node<T>::setFlag(flagType type, bool value) {
-	_flags.set(type, value);
+template<typename T> void Node<T>::setFlag(flagType aType, bool aValue) {
+	_flags.set(aType, aValue);
 }
 
-template<typename T> bool Node<T>::getFlag(flagType type) {
-	return _flags[type];
+template<typename T> bool Node<T>::getFlag(flagType aType) {
+	return _flags[aType];
 }
 
 /*
@@ -119,30 +126,38 @@ template<typename T> bool Node<T>::getFlag(flagType type) {
 * false is returned. This method assumes that this and other are not on the same
 * represented tree. Returns true on success.
 */
-template<typename T> bool Node<T>::link(Node<T>* other, bool positional, bool placeLeft) {
-	if (positional && other->getFlag(HAS_LEFT_CHILD) && placeLeft ||
-		other->getFlag(HAS_RIGHT_CHILD) && !placeLeft) {
-		return false;
-	}
+template<typename T> bool Node<T>::link(Node<T>* aOther) {
 	expose();
 	if (_left) {
 		return false; // v is not the root of its represented tree
 	}
-	other->expose();
-	_left = other;
-	other->_parent = this;
-	other->_isRoot = false;
-	if (positional) {
-		if (placeLeft) {
-			other->setFlag(HAS_LEFT_CHILD);
-			this->setFlag(IS_LEFT_CHILD);
-		}
-		else {
-			other->setFlag(HAS_RIGHT_CHILD);
-			this->setFlag(IS_RIGHT_CHILD);
-		}
-	}
+	aOther->expose();
+	_left = aOther;
+	aOther->_parent = this;
+	aOther->_isRoot = false;
 	return true;
+}
+
+template<typename T> bool Node<T>::linkLeft(Node<T>* aOther) {
+	if (aOther->getFlag(HAS_LEFT_CHILD) || !link(aOther)) {
+		return false;
+	}
+	else {
+		aOther->setFlag(HAS_LEFT_CHILD);
+		this->setFlag(IS_LEFT_CHILD);
+		return true;
+	}
+}
+
+template<typename T> bool Node<T>::linkRight(Node<T>* aOther) {
+	if (aOther->getFlag(HAS_RIGHT_CHILD) || !link(aOther)) {
+		return false;
+	}
+	else {
+		aOther->setFlag(HAS_RIGHT_CHILD);
+		this->setFlag(IS_RIGHT_CHILD);
+		return true;
+	}
 }
 
 /*
