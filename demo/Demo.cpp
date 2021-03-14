@@ -10,7 +10,7 @@ int main()
 	std::vector<Node<int>*> v;
 	std::map<Node<int>*, std::vector<Node<int>*>> backpointers;
 	for (int i = 0; i < 100; i++) {
-		v.push_back(l.createTree(i));
+		v.push_back(l.createTree(i, i));
 	}
 	int x, y;
 	while (true) {
@@ -65,7 +65,7 @@ int main()
 		else if (input.compare("info") == 0) {
 			std::cin >> x;
 			for (int i = 0; i < 4; i++) {
-				std::cout << l[x]->getFlag(static_cast<Node<int>::flagType>(3-i));
+				std::cout << l[x]->getFlag(static_cast<Node<int>::flagType>(3 - i));
 			}
 			std::cout << std::endl;
 		}

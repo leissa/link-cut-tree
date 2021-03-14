@@ -8,9 +8,11 @@
 template<typename T> class Node {
 public:
 	Node() = default;
-	Node(const T& key);
+	Node(const T& key, int aID = _idCounter++);
 
 	T& getKey();
+	int getID();
+	static int _idCounter;
 	void expose();
 
 	// the following methods refer to the auxiliary tree
@@ -48,6 +50,7 @@ public:
 private:
 	Node* _left, * _right, * _parent;
 	T _key;
+	int _id;
 	bool _isRoot;
 	std::bitset<4> _flags;
 	void rotR();
@@ -55,8 +58,14 @@ private:
 	void splay();
 };
 
-template<typename T> Node<T>::Node(const T& aKey)
-	: _left(nullptr), _right(nullptr), _parent(nullptr), _key(aKey), _isRoot(true), _flags(0) {
+template<typename T> Node<T>::Node(const T& aKey, int aID) : _left(nullptr), _right(nullptr),
+_parent(nullptr), _key(aKey), _isRoot(true), _flags(0), _id(aID) {
+}
+
+template<typename T> int Node<T>::_idCounter = 0;
+
+template<typename T> int Node<T>::getID() {
+	return _id;
 }
 
 template<typename T> void Node<T>::expose() {
@@ -169,14 +178,7 @@ template<typename T> void Node<T>::cut() {
 	expose();
 	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
 		_left->_isRoot = true;
-		if (_left->getFlag(HAS_LEFT_CHILD) && this->getFlag(IS_LEFT_CHILD)) {
-			_left->setFlag(HAS_LEFT_CHILD, 0);
-			this->setFlag(IS_LEFT_CHILD, 0);
-		}
-		if (_left->getFlag(HAS_RIGHT_CHILD) && this->getFlag(IS_RIGHT_CHILD)) {
-			_left->setFlag(HAS_RIGHT_CHILD, 0);
-			this->setFlag(IS_RIGHT_CHILD, 0);
-		}
+		// TODO: fix flags using findparent
 		_left->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
 	}

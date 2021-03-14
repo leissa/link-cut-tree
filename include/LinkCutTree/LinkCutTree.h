@@ -9,104 +9,104 @@
 template<typename T> class LinkCutTree {
 public:
 	LinkCutTree<T>();
-	Node<T>* createTree(const T& key);
-	Node<T>* operator[](const T& key);
+	Node<T>* createTree(const T& aKey, int id = Node<T>::_idCounter++);
+	Node<T>* operator[](const T& aKey);
 
-	static void printSplayTree(const std::string& prefix, Node<T>* node,
-		bool isLeft, std::map<Node<T>*, std::vector<Node<T>*>>* b = nullptr);
+	static void printSplayTree(Node<T>* aNode,
+		std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers = nullptr);
 
-	static void printSplayTree(Node<T>* node, std::map<Node<T>*, std::vector<Node<T>*>>* b = nullptr);
+	static void printLCT(Node<T>* aNode, std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers = nullptr);
 
-	static void printLCT(Node<T>* node, std::map<Node<T>*, std::vector<Node<T>*>>* b = nullptr);
-
-	static int printReprTree(Node<T>* node, std::map<Node<T>*, std::vector<Node<T>*>>* b = nullptr,
-		bool t = true, int depth = 0);
+	static int printReprTree(Node<T>* aNode, std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers = nullptr,
+		bool aDiscoverParent = true, int aDepth = 0);
 
 private:
-	std::map<T, Node<T>> nodes;
+	std::map<T, Node<T>> _nodes;
+
+	static void printSplayTreeRecursive(const std::string& aPrefix, Node<T>* aNode,
+		bool aLeft, std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers = nullptr);
 };
 
-template<typename T> LinkCutTree<T>::LinkCutTree() : nodes(std::map<T, Node<T>>()) {}
+template<typename T> LinkCutTree<T>::LinkCutTree() : _nodes(std::map<T, Node<T>>()) {}
 
-template<typename T> Node<T>* LinkCutTree<T>::createTree(const T& key)
+template<typename T> Node<T>* LinkCutTree<T>::createTree(const T& aKey, int aID)
 {
-	if (!this->nodes.count(key)) {
-		nodes.insert(std::make_pair(key, Node<T>(key)));
+	if (!this->_nodes.count(aKey)) {
+		_nodes.insert(std::make_pair(aKey, Node<T>(aKey, aID)));
 	}
-	return &(this->nodes[key]);
+	return &(this->_nodes[aKey]);
 }
 
-template<typename T> Node<T>* LinkCutTree<T>::operator[](const T& key)
+template<typename T> Node<T>* LinkCutTree<T>::operator[](const T& aKey)
 {
-	if (this->nodes.count(key)) {
-		return &(this->nodes[key]);
+	if (this->_nodes.count(aKey)) {
+		return &(this->_nodes[aKey]);
 	}
 	else {
 		return nullptr;
 	}
 }
 
-template<typename T> void LinkCutTree<T>::printSplayTree(const std::string& prefix, Node<T>* node,
-	bool isLeft, std::map<Node<T>*, std::vector<Node<T>*>>* b)
+template<typename T> void LinkCutTree<T>::printSplayTreeRecursive(const std::string& aPrefix, Node<T>* aNode,
+	bool aLeft, std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
 {
-	std::cout << prefix << (isLeft ? "|--" : "|--") << node->getKey() << (node->isRoot() ? "r" : "");
-	if (node->parent()) {
-		std::cout << "(" << node->parent()->getKey() << ")";
+	std::cout << aPrefix << (aLeft ? "|--" : "|--") << aNode->getID() << (aNode->isRoot() ? "r" : "");
+	if (aNode->parent()) {
+		std::cout << "(" << aNode->parent()->getID() << ")";
 	}
 	std::cout << std::endl;
 
-	if (node->right()) {
-		printSplayTree(prefix + (isLeft ? "|    " : "     "), node->right(), false, b);
+	if (aNode->right()) {
+		printSplayTreeRecursive(aPrefix + (aLeft ? "|    " : "     "), aNode->right(), false, aBackpointers);
 	}
-
-	if (b && b->count(node)) {
-		for (int i = 0; i < b->at(node).size(); i++) {
-			printSplayTree(prefix + "~    ", b->at(node).at(i), true, b);
+	if (aBackpointers && aBackpointers->count(aNode)) {
+		for (int i = 0; i < aBackpointers->at(aNode).size(); i++) {
+			printSplayTreeRecursive(aPrefix + "~    ", aBackpointers->at(aNode).at(i), true, aBackpointers);
 		}
 	}
-	if (node->left()) {
-		printSplayTree(prefix + (isLeft ? "|    " : "     "), node->left(), true, b);
+	if (aNode->left()) {
+		printSplayTreeRecursive(aPrefix + (aLeft ? "|    " : "     "), aNode->left(), true, aBackpointers);
 	}
 }
 
-template<typename T> void LinkCutTree<T>::printSplayTree(Node<T>* node,
-	std::map<Node<T>*, std::vector<Node<T>*>>* b)
+template<typename T> void LinkCutTree<T>::printSplayTree(Node<T>* aNode,
+	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
 {
-	while (!node->_isRoot) {
-		node = node->parent();
+	while (!aNode->_isRoot) {
+		aNode = aNode->parent();
 	}
-	printSplayTree("", node, false, b);
+	printSplayTreeRecursive("", aNode, false, aBackpointers);
 }
 
-template<typename T> void LinkCutTree<T>::printLCT(Node<T>* node,
-	std::map<Node<T>*, std::vector<Node<T>*>>* b)
+template<typename T> void LinkCutTree<T>::printLCT(Node<T>* aNode,
+	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
 {
-	while (node->parent()) {
-		node = node->parent();
+	while (aNode->parent()) {
+		aNode = aNode->parent();
 	}
-	printSplayTree("", node, false, b);
+	printSplayTreeRecursive("", aNode, false, aBackpointers);
 }
 
-template<typename T> int LinkCutTree<T>::printReprTree(Node<T>* node,
-	std::map<Node<T>*, std::vector<Node<T>*>>* b, bool t, int depth)
+template<typename T> int LinkCutTree<T>::printReprTree(Node<T>* aNode,
+	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers, bool aDiscoverParent, int aDepth)
 {
-	while (t && node->parent()) {
-		node = node->parent();
+	while (aDiscoverParent && aNode->parent()) {
+		aNode = aNode->parent();
 	}
-	if (node->left()) {
-		depth = printReprTree(node->left(), b, false, depth);
+	if (aNode->left()) {
+		aDepth = printReprTree(aNode->left(), aBackpointers, false, aDepth);
 	}
-	std::cout << std::string(depth * 4L, ' ') << node->getKey() << std::endl;
-	depth++;
-	if (b && b->count(node)) {
-		for (int i = 0; i < b->at(node).size(); i++) {
-			printReprTree(b->at(node).at(i), b, false, depth);
+	std::cout << std::string(aDepth * 4L, ' ') << aNode->getID() << std::endl;
+	aDepth++;
+	if (aBackpointers && aBackpointers->count(aNode)) {
+		for (int i = 0; i < aBackpointers->at(aNode).size(); i++) {
+			printReprTree(aBackpointers->at(aNode).at(i), aBackpointers, false, aDepth);
 		}
 	}
-	if (node->right()) {
-		depth = printReprTree(node->right(), b, false, depth);
+	if (aNode->right()) {
+		aDepth = printReprTree(aNode->right(), aBackpointers, false, aDepth);
 	}
-	return depth;
+	return aDepth;
 }
 
 #endif
