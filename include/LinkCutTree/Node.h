@@ -8,11 +8,11 @@
 template<typename T> class Node {
 public:
 	Node() = default;
-	Node(const T& key, int aID = _idCounter++);
+	Node(const T& key, int aID = idCounter++);
 
 	T& getKey();
 	int getID();
-	static int _idCounter;
+	static int idCounter;
 	void expose();
 
 	// the following methods refer to the auxiliary tree
@@ -59,10 +59,9 @@ private:
 };
 
 template<typename T> Node<T>::Node(const T& aKey, int aID) : _left(nullptr), _right(nullptr),
-_parent(nullptr), _key(aKey), _isRoot(true), _flags(0), _id(aID) {
-}
+_parent(nullptr), _key(aKey), _isRoot(true), _flags(0), _id(aID) {}
 
-template<typename T> int Node<T>::_idCounter = 0;
+template<typename T> int Node<T>::idCounter = 0;
 
 template<typename T> int Node<T>::getID() {
 	return _id;
@@ -93,6 +92,37 @@ template<typename T> Node<T>* Node<T>::findRoot() {
 	}
 	lRoot->splay();
 	return lRoot;
+}
+
+template<typename T> Node<T>* Node<T>::findParent() {
+	Node* lTemp = this;
+	if (_left) { // parent must be found in left subtree
+		lTemp = _left;
+		while (lTemp->_right) {
+			lTemp = lTemp->_right;
+		}
+		return lTemp;
+	}
+	else { // parent is either on path from this to root (of aux) or the parent of root (which can be null)
+		if (_parent) {
+			while (true) {
+				if (lTemp->_isRoot) {
+					return lTemp->_parent;
+				}
+				else {
+					if (lTemp->_parent->_right == lTemp) {
+						return lTemp->_parent;
+					}
+					else {
+						lTemp = lTemp->_parent;
+					}
+				}
+			}
+		}
+		else { // there exists no left subtree and lTemp has no (path)parent -> lTemp is root of repr. tree
+			return nullptr;
+		}
+	}
 }
 
 /*

@@ -9,7 +9,7 @@
 template<typename T> class LinkCutTree {
 public:
 	LinkCutTree<T>();
-	Node<T>* createTree(const T& aKey, int id = Node<T>::_idCounter++);
+	Node<T>* createTree(const T& aKey, int id = Node<T>::idCounter++);
 	Node<T>* operator[](const T& aKey);
 
 	static void printSplayTree(Node<T>* aNode,

@@ -1,73 +1,80 @@
-#include "LinkCutTree.h"
 #include <iostream>
 #include <string>
+#include "LinkCutTree.h"
 #include "Utils.h"
 #include "Node.h"
 
 int main()
 {
-	LinkCutTree<int> l;
-	std::vector<Node<int>*> v;
-	std::map<Node<int>*, std::vector<Node<int>*>> backpointers;
+	LinkCutTree<int> lLct;
+	std::vector<Node<int>*> lNodes;
+	std::map<Node<int>*, std::vector<Node<int>*>> lBackpointers;
 	for (int i = 0; i < 100; i++) {
-		v.push_back(l.createTree(i, i));
+		lNodes.push_back(lLct.createTree(i, i));
 	}
-	int x, y;
+	int lX, lY;
 	while (true) {
-		std::string input;
-		std::cin >> input;
+		std::string lInput;
+		std::cin >> lInput;
 		if (std::cin.fail()) {
 			exit(0);
 		}
-		if (input.compare("repr") == 0) {
-			std::cin >> x;
-			updateBackpointers(v, backpointers);
-			l.printReprTree(l[x], &backpointers);
+		if (lInput.compare("repr") == 0) {
+			std::cin >> lX;
+			updateBackpointers(lNodes, lBackpointers);
+			lLct.printReprTree(lLct[lX], &lBackpointers);
 		}
-		else if (input.compare("lct") == 0) {
-			std::cin >> x;
-			updateBackpointers(v, backpointers);
-			l.printLCT(l[x], &backpointers);
+		else if (lInput.compare("lct") == 0) {
+			std::cin >> lX;
+			updateBackpointers(lNodes, lBackpointers);
+			lLct.printLCT(lLct[lX], &lBackpointers);
 		}
-		else if (input.compare("link") == 0) {
-			std::cin >> x;
-			std::cin >> y;
-			l[x]->link(l[y]);
+		else if (lInput.compare("link") == 0) {
+			std::cin >> lX;
+			std::cin >> lY;
+			lLct[lX]->link(lLct[lY]);
 		}
-		else if (input.compare("ll") == 0) {
-			std::cin >> x;
-			std::cin >> y;
-			l[x]->linkLeft(l[y]);
+		else if (lInput.compare("ll") == 0) {
+			std::cin >> lX;
+			std::cin >> lY;
+			lLct[lX]->linkLeft(lLct[lY]);
 		}
-		else if (input.compare("lr") == 0) {
-			std::cin >> x;
-			std::cin >> y;
-			l[x]->linkRight(l[y]);
+		else if (lInput.compare("lr") == 0) {
+			std::cin >> lX;
+			std::cin >> lY;
+			lLct[lX]->linkRight(lLct[lY]);
 		}
-		else if (input.compare("cut") == 0) {
-			std::cin >> x;
-			l[x]->cut();
+		else if (lInput.compare("cut") == 0) {
+			std::cin >> lX;
+			lLct[lX]->cut();
 		}
-		else if (input.compare("expose") == 0) {
-			std::cin >> x;
-			l[x]->expose();
+		else if (lInput.compare("expose") == 0) {
+			std::cin >> lX;
+			lLct[lX]->expose();
 		}
-		else if (input.compare("root") == 0) {
-			std::cin >> x;
-			std::cout << l[x]->findRoot()->getKey() << std::endl;
+		else if (lInput.compare("root") == 0) {
+			std::cin >> lX;
+			std::cout << lLct[lX]->findRoot()->getKey() << std::endl;
 		}
-		else if (input.compare("lca") == 0) {
-			std::cin >> x;
-			std::cin >> y;
-			auto lca = l[x]->lowestCommonAncestor(l[y]);
-			std::cout << (lca ? lca->getKey() : -1) << std::endl;
+		else if (lInput.compare("lca") == 0) {
+			std::cin >> lX;
+			std::cin >> lY;
+			auto lLca = lLct[lX]->lowestCommonAncestor(lLct[lY]);
+			std::cout << (lLca ? lLca->getID() : -1) << std::endl;
 		}
-		else if (input.compare("info") == 0) {
-			std::cin >> x;
+		else if (lInput.compare("info") == 0) {
+			std::cin >> lX;
 			for (int i = 0; i < 4; i++) {
-				std::cout << l[x]->getFlag(static_cast<Node<int>::flagType>(3 - i));
+				std::cout << lLct[lX]->getFlag(static_cast<Node<int>::flagType>(3 - i)) << std::endl;
 			}
-			std::cout << std::endl;
+		}
+		else if (lInput.compare("random") == 0) {
+			lLct = createRandomLCT(15, &lNodes);
+		}
+		else if (lInput.compare("parent") == 0) {
+			std::cin >> lX;
+			auto lRoot = lLct[lX]->findParent();
+			std::cout << (lRoot ? lRoot->getID() : -1) << std::endl;
 		}
 	}
 }
