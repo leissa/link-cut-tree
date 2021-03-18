@@ -65,8 +65,9 @@ int main()
 		else if (lInput.compare("info") == 0) {
 			std::cin >> lX;
 			for (int i = 0; i < 4; i++) {
-				std::cout << lLct[lX]->getFlag(static_cast<Node<int>::flagType>(3 - i)) << std::endl;
+				std::cout << lLct[lX]->getFlag(static_cast<Node<int>::flagType>(3 - i));
 			}
+			std::cout << std::endl;
 		}
 		else if (lInput.compare("random") == 0) {
 			lLct = createRandomLCT(15, &lNodes);
@@ -75,6 +76,13 @@ int main()
 			std::cin >> lX;
 			auto lRoot = lLct[lX]->findParent();
 			std::cout << (lRoot ? lRoot->getID() : -1) << std::endl;
+		}
+		else if (lInput.compare("printPath") == 0) {
+			std::cin >> lX;
+			lLct[lX]->path([](Node<int>* aNode)
+				{
+					std::cout << aNode->getID() << std::endl;
+				});
 		}
 	}
 }

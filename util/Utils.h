@@ -56,7 +56,7 @@ LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<Node<int>*>* aNodes
 			aNodes->push_back(aLCT.createTree(i, i));
 		}
 		else {
-			aLCT.createTree(i);
+			aLCT.createTree(i, i);
 		}
 		aLCT[i]->link(aLCT[rand() % i]);
 	}

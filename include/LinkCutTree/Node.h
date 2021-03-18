@@ -37,6 +37,7 @@ public:
 	Node* findRoot();
 	Node* findParent();
 	Node* lowestCommonAncestor(Node* aOther);
+	template<typename F> void path(F aFunction);
 
 	enum flagType { // maybe only include in dedicated subclass and restrict regular link
 		IS_LEFT_CHILD,
@@ -151,6 +152,19 @@ template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* aOther) {
 	}
 }
 
+/**
+* function object aFunction must have signature
+*	void aFunction(Node* aNode)
+* calls aFunction on every node on the path from this to the root of the repr. tree
+*/
+template<typename T> template<typename F> inline void Node<T>::path(F aFunction)
+{
+	Node* lTemp = this;
+	do {
+		aFunction(lTemp);
+	} while ((lTemp = lTemp->findParent()) != nullptr);
+}
+
 template<typename T> void Node<T>::setFlag(flagType aType, bool aValue) {
 	_flags.set(aType, aValue);
 }
@@ -207,8 +221,16 @@ template<typename T> bool Node<T>::linkRight(Node<T>* aOther) {
 template<typename T> void Node<T>::cut() {
 	expose();
 	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
+		Node* lParent = findParent();
+		if (lParent->getFlag(HAS_LEFT_CHILD) && getFlag(IS_LEFT_CHILD)) {
+			lParent->setFlag(HAS_LEFT_CHILD, 0);
+			this->setFlag(IS_LEFT_CHILD, 0);
+		}
+		if (lParent->getFlag(HAS_RIGHT_CHILD) && getFlag(IS_RIGHT_CHILD)) {
+			lParent->setFlag(HAS_RIGHT_CHILD, 0);
+			this->setFlag(IS_RIGHT_CHILD, 0);
+		}
 		_left->_isRoot = true;
-		// TODO: fix flags using findparent
 		_left->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
 	}
