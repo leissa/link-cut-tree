@@ -1,11 +1,40 @@
 #ifndef LINK_CUT_TREE_UTILS_H
 #define LINK_CUT_TREE_UTILS_H
+#define ull unsigned long long
 
 #include <vector>
 #include <random>
 #include <map>
 #include "Node.h"
 #include "LinkCutTree.h"
+
+// fails at aN >= 21 for 64 bit ull, maybe use something equivalent to biginteger
+// or calculate nCk dynamically
+ull factorial(int aN) {
+	ull lRes = 1;
+	for (int i = 2; i <= aN; i++) {
+		lRes *= i;
+	}
+	return lRes;
+}
+
+ull nCk(int aN, int aK) {
+	return factorial(aN) / (factorial(aK) * factorial(aN - aK));
+}
+
+// ballot(0,0,2n) = catalan(n)
+ull ballot(int i, int j, int n) {
+	return ((j + 1) * nCk(2 * n - i + 1, 0.5 * (2 * n - i + j) + 1)) / (2 * n - i + 1);
+}
+
+LinkCutTree<int> createRandomJoinTree(int aInnerNodes) {
+	int lCatalan = ballot(0, 0, 2 * aInnerNodes);
+	srand(time(nullptr));
+	int lSeed = rand() % lCatalan;
+	lSeed = 3;
+	LinkCutTree<int> lLCT;
+	return lLCT;
+}
 
 std::vector<Node<int>*> createRandomSplayTree(int a, int b, int offset) {
 	std::vector<Node<int>*> v;
