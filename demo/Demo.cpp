@@ -70,6 +70,7 @@ int main()
 			std::cout << std::endl;
 		}
 		else if (lInput.compare("random") == 0) {
+			lNodes.clear();
 			lLct = createRandomLCT(15, &lNodes);
 		}
 		else if (lInput.compare("parent") == 0) {
@@ -83,6 +84,14 @@ int main()
 				{
 					std::cout << aNode->getID() << std::endl;
 				});
+		}
+		else if (lInput.compare("randomJoinTree") == 0) {
+			std::cin >> lX; // number of inner nodes
+			std::cin >> lY; // seed in range [0, catalan(n)[
+			lNodes.clear();
+			lLct = createRandomJoinTree(lX, lY, &lNodes);
+			updateBackpointers(lNodes, lBackpointers);
+			lLct.printReprTree(lLct[1], &lBackpointers);
 		}
 	}
 }

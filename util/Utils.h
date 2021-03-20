@@ -22,17 +22,57 @@ ull nCk(int aN, int aK) {
 	return factorial(aN) / (factorial(aK) * factorial(aN - aK));
 }
 
-// ballot(0,0,2n) = catalan(n)
+// ballot(0,0,n) = catalan(n)
+// calculate number of paths from (i,j) to (2n,0) for n inner nodes
 ull ballot(int i, int j, int n) {
 	return ((j + 1) * nCk(2 * n - i + 1, 0.5 * (2 * n - i + j) + 1)) / (2 * n - i + 1);
 }
 
-LinkCutTree<int> createRandomJoinTree(int aInnerNodes) {
-	int lCatalan = ballot(0, 0, 2 * aInnerNodes);
-	srand(time(nullptr));
-	int lSeed = rand() % lCatalan;
-	lSeed = 3;
+LinkCutTree<int> createRandomJoinTree(int aInnerNodes, int aSeed = -1, std::vector<Node<int>*>* aNodes = nullptr) {
+	if (aSeed == -1) {
+		int lCatalan = ballot(0, 0, aInnerNodes);
+		srand(time(nullptr));
+		aSeed = rand() % lCatalan;
+	}
 	LinkCutTree<int> lLCT;
+	Node<int>* current = lLCT.createTree(1, 1);
+	Node<int>* temp = nullptr;
+	bool left = true;
+	int lNoParOpen = 1;
+	int lNoParClose = 0;
+	int lPaths = 0; // holds the number of possible paths to (2n,0) from current position offset by (1,1)
+	// location in grid is (lNoParOpen + lNoParClose, lNoParOpen - lNoParClose)
+	for (int i = 2; i <= 2 * aInnerNodes; i++) {
+		lPaths = ballot(lNoParOpen + lNoParClose + 1, lNoParOpen - lNoParClose + 1, aInnerNodes);
+		if (lPaths <= aSeed) {
+			aSeed = aSeed - lPaths;
+			lNoParClose++;
+			if (!left) {
+				current = current->findParent(); // can not be null
+				while (current->getFlag(Node<int>::HAS_RIGHT_CHILD)) {
+					current = current->findParent();
+				}
+			}
+			left = false; // tree after closing par. must be right child
+		}
+		else {
+			if (aNodes) {
+				aNodes->push_back(lLCT.createTree(i, i));
+			}
+			else {
+				lLCT.createTree(i, i);
+			}
+			if (left) {
+				lLCT[i]->linkLeft(current);
+			}
+			else {
+				lLCT[i]->linkRight(current);
+			}
+			left = true;
+			current = lLCT[i];
+			lNoParOpen++;
+		}
+	}
 	return lLCT;
 }
 
