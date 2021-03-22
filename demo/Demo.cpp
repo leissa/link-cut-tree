@@ -22,12 +22,12 @@ int main()
 		if (lInput.compare("repr") == 0) {
 			std::cin >> lX;
 			updateBackpointers(lNodes, lBackpointers);
-			lLct.printReprTree(lLct[lX], &lBackpointers);
+			printReprTree(lLct[lX], &lBackpointers);
 		}
 		else if (lInput.compare("lct") == 0) {
 			std::cin >> lX;
 			updateBackpointers(lNodes, lBackpointers);
-			lLct.printLCT(lLct[lX], &lBackpointers);
+			printLCT(lLct[lX], &lBackpointers);
 		}
 		else if (lInput.compare("link") == 0) {
 			std::cin >> lX;
@@ -91,7 +91,7 @@ int main()
 			lNodes.clear();
 			lLct = createRandomJoinTree(lX, lY, &lNodes);
 			updateBackpointers(lNodes, lBackpointers);
-			lLct.printReprTree(lLct[1], &lBackpointers);
+			printReprTree(lLct[1], &lBackpointers);
 		}
 	}
 }

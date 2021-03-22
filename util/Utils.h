@@ -35,9 +35,8 @@ LinkCutTree<int> createRandomJoinTree(int aInnerNodes, int aSeed = -1, std::vect
 		aSeed = rand() % lCatalan;
 	}
 	LinkCutTree<int> lLCT;
-	Node<int>* current = lLCT.createTree(1, 1);
-	Node<int>* temp = nullptr;
-	bool left = true;
+	Node<int>* lCurrent = lLCT.createTree(1, 1);
+	bool lLeft = true;
 	int lNoParOpen = 1;
 	int lNoParClose = 0;
 	int lPaths = 0; // holds the number of possible paths to (2n,0) from current position offset by (1,1)
@@ -47,13 +46,13 @@ LinkCutTree<int> createRandomJoinTree(int aInnerNodes, int aSeed = -1, std::vect
 		if (lPaths <= aSeed) {
 			aSeed = aSeed - lPaths;
 			lNoParClose++;
-			if (!left) {
-				current = current->findParent(); // can not be null
-				while (current->getFlag(Node<int>::HAS_RIGHT_CHILD)) {
-					current = current->findParent();
+			if (!lLeft) {
+				lCurrent = lCurrent->findParent(); // can not be null
+				while (lCurrent->getFlag(Node<int>::HAS_RIGHT_CHILD)) {
+					lCurrent = lCurrent->findParent();
 				}
 			}
-			left = false; // tree after closing par. must be right child
+			lLeft = false; // tree after closing par. must be right child
 		}
 		else {
 			if (aNodes) {
@@ -62,14 +61,14 @@ LinkCutTree<int> createRandomJoinTree(int aInnerNodes, int aSeed = -1, std::vect
 			else {
 				lLCT.createTree(i, i);
 			}
-			if (left) {
-				lLCT[i]->linkLeft(current);
+			if (lLeft) {
+				lLCT[i]->linkLeft(lCurrent);
 			}
 			else {
-				lLCT[i]->linkRight(current);
+				lLCT[i]->linkRight(lCurrent);
 			}
-			left = true;
-			current = lLCT[i];
+			lLeft = true;
+			lCurrent = lLCT[i];
 			lNoParOpen++;
 		}
 	}
@@ -151,6 +150,68 @@ void deleteNodes(std::vector<Node<int>*>* v) {
 	for (int i = 0; i < v->size(); i++) {
 		delete v->at(i);
 	}
+}
+
+template<typename T> void printSplayTreeRecursive(const std::string& aPrefix, Node<T>* aNode,
+	bool aLeft, std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
+{
+	std::cout << aPrefix << (aLeft ? "|--" : "|--") << aNode->getID() << (aNode->isRoot() ? "r" : "");
+	if (aNode->parent()) {
+		std::cout << "(" << aNode->parent()->getID() << ")";
+	}
+	std::cout << std::endl;
+
+	if (aNode->right()) {
+		printSplayTreeRecursive(aPrefix + (aLeft ? "|    " : "     "), aNode->right(), false, aBackpointers);
+	}
+	if (aBackpointers && aBackpointers->count(aNode)) {
+		for (int i = 0; i < aBackpointers->at(aNode).size(); i++) {
+			printSplayTreeRecursive(aPrefix + "~    ", aBackpointers->at(aNode).at(i), true, aBackpointers);
+		}
+	}
+	if (aNode->left()) {
+		printSplayTreeRecursive(aPrefix + (aLeft ? "|    " : "     "), aNode->left(), true, aBackpointers);
+	}
+}
+
+template<typename T> void printSplayTree(Node<T>* aNode,
+	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
+{
+	while (!aNode->_isRoot) {
+		aNode = aNode->parent();
+	}
+	printSplayTreeRecursive("", aNode, false, aBackpointers);
+}
+
+template<typename T> void printLCT(Node<T>* aNode,
+	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
+{
+	while (aNode->parent()) {
+		aNode = aNode->parent();
+	}
+	printSplayTreeRecursive("", aNode, false, aBackpointers);
+}
+
+template<typename T> int printReprTree(Node<T>* aNode,
+	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers, bool aDiscoverParent = true, int aDepth = 0)
+{
+	while (aDiscoverParent && aNode->parent()) {
+		aNode = aNode->parent();
+	}
+	if (aNode->left()) {
+		aDepth = printReprTree(aNode->left(), aBackpointers, false, aDepth);
+	}
+	std::cout << std::string(aDepth * 4L, ' ') << aNode->getID() << std::endl;
+	aDepth++;
+	if (aBackpointers && aBackpointers->count(aNode)) {
+		for (int i = 0; i < aBackpointers->at(aNode).size(); i++) {
+			printReprTree(aBackpointers->at(aNode).at(i), aBackpointers, false, aDepth);
+		}
+	}
+	if (aNode->right()) {
+		aDepth = printReprTree(aNode->right(), aBackpointers, false, aDepth);
+	}
+	return aDepth;
 }
 
 #endif
