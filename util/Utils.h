@@ -8,24 +8,35 @@
 #include "Node.h"
 #include "LinkCutTree.h"
 
-// fails at aN >= 21 for 64 bit ull, maybe use something equivalent to biginteger
-// or calculate nCk dynamically
-ull factorial(int aN) {
-	ull lRes = 1;
-	for (int i = 2; i <= aN; i++) {
-		lRes *= i;
-	}
-	return lRes;
-}
-
 ull nCk(int aN, int aK) {
-	return factorial(aN) / (factorial(aK) * factorial(aN - aK));
+	ull** lArray = new ull* [aN + 1];
+	for (int i = 0; i < aN + 1; i++) {
+		lArray[i] = new ull[aK + 1];
+	}
+	for (int i = 0; i < aN + 1; i++) {
+		for (int j = 0; j < aK + 1; j++) {
+			if (j == 0 || j == aN) {
+				lArray[i][j] = 1;
+			} else if(j > i) {
+				lArray[i][j] = 0;
+			}
+			else {
+				lArray[i][j] = lArray[i - 1][j - 1] + lArray[i - 1][j];
+			}
+		}
+	}
+	ull res = lArray[aN][aK];
+	for (int i = 0; i < aN; ++i) {
+		delete[] lArray[i];
+	}
+	delete[] lArray;
+	return res;
 }
 
 // ballot(0,0,n) = catalan(n)
 // calculate number of paths from (i,j) to (2n,0) for n inner nodes
 ull ballot(int i, int j, int n) {
-	return ((j + 1) * nCk(2 * n - i + 1, 0.5 * (2 * n - i + j) + 1)) / (2 * n - i + 1);
+	return ((j + 1) * nCk(2 * n - i + 1, (2 * n - i + j) / 2 + 1)) / (2 * n - i + 1);
 }
 
 LinkCutTree<int> createRandomJoinTree(int aInnerNodes, int aSeed = -1, std::vector<Node<int>*>* aNodes = nullptr) {
@@ -39,7 +50,7 @@ LinkCutTree<int> createRandomJoinTree(int aInnerNodes, int aSeed = -1, std::vect
 	bool lLeft = true;
 	int lNoParOpen = 1;
 	int lNoParClose = 0;
-	int lPaths = 0; // holds the number of possible paths to (2n,0) from current position offset by (1,1)
+	ull lPaths = 0; // holds the number of possible paths to (2n,0) from current position offset by (1,1)
 	// location in grid is (lNoParOpen + lNoParClose, lNoParOpen - lNoParClose)
 	for (int i = 2; i <= 2 * aInnerNodes; i++) {
 		lPaths = ballot(lNoParOpen + lNoParClose + 1, lNoParOpen - lNoParClose + 1, aInnerNodes);
