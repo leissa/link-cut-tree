@@ -3,8 +3,10 @@
 
 #include "Node.h"
 
-template<typename T> class OpTreeNode<T> : public Node<T> {
-
+template<typename T> class OpTreeNode : public Node<T> {
+public:
+	using Node::Node;
+private:
 };
 
 #endif

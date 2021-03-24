@@ -39,9 +39,9 @@ ull ballot(int i, int j, int n) {
 	return ((j + 1) * nCk(2 * n - i + 1, (2 * n - i + j) / 2 + 1)) / (2 * n - i + 1);
 }
 
-LinkCutTree<int> createRandomJoinTree(int aInnerNodes, int aSeed = -1, std::vector<Node<int>*>* aNodes = nullptr) {
+LinkCutTree<int> createRandomJoinTree(int aInnerNodes, ull aSeed = -1, std::vector<Node<int>*>* aNodes = nullptr) {
 	if (aSeed == -1) {
-		int lCatalan = ballot(0, 0, aInnerNodes);
+		ull lCatalan = ballot(0, 0, aInnerNodes);
 		srand(time(nullptr));
 		aSeed = rand() % lCatalan;
 	}

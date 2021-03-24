@@ -38,6 +38,7 @@ public:
 	Node* findParent();
 	Node* lowestCommonAncestor(Node* aOther);
 	template<typename F> void path(F aFunction);
+	template<typename F> Node<T>* find_if(F aFunction);
 
 	enum flagType { // maybe only include in dedicated subclass and restrict regular link
 		IS_LEFT_CHILD,
@@ -157,12 +158,29 @@ template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* aOther) {
 *	void aFunction(Node* aNode)
 * calls aFunction on every node on the path from this to the root of the repr. tree
 */
-template<typename T> template<typename F> inline void Node<T>::path(F aFunction)
+template<typename T> template<typename F> void Node<T>::path(F aFunction)
 {
 	Node* lTemp = this;
 	do {
 		aFunction(lTemp);
 	} while ((lTemp = lTemp->findParent()) != nullptr);
+}
+
+/**
+* function object aFunction must have signature
+*	bool aFunction(Node* aNode)
+* calls aFunction on every node on the path from this to the root of the repr. tree
+* and returns a pointer to the first node for which aFunction evaluates to true
+*/
+template<typename T> template<typename F> Node<T>* Node<T>::find_if(F aFunction)
+{
+	Node* lTemp = this;
+	do {
+		if (aFunction(lTemp)) {
+			return lTemp;
+		}
+	} while ((lTemp = lTemp->findParent()) != nullptr);
+	return nullptr;
 }
 
 template<typename T> void Node<T>::setFlag(flagType aType, bool aValue) {
@@ -235,6 +253,7 @@ template<typename T> void Node<T>::cut() {
 		_left = nullptr;
 	}
 }
+
 
 template<typename T> void Node<T>::rotR() {
 	_left->_parent = _parent;

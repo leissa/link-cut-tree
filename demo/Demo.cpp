@@ -70,8 +70,9 @@ int main()
 			std::cout << std::endl;
 		}
 		else if (lInput.compare("random") == 0) {
+			std::cin >> lX;
 			lNodes.clear();
-			lLct = createRandomLCT(15, &lNodes);
+			lLct = createRandomLCT(lX, &lNodes);
 		}
 		else if (lInput.compare("parent") == 0) {
 			std::cin >> lX;
@@ -92,6 +93,19 @@ int main()
 			lLct = createRandomJoinTree(lX, lY, &lNodes);
 			updateBackpointers(lNodes, lBackpointers);
 			printReprTree(lLct[1], &lBackpointers);
+		}
+		else if (lInput.compare("find") == 0) {
+			std::cin >> lX;
+			std::cin >> lY;
+			Node<int>* aRes = lLct[lX]->find_if([lY](Node<int>* aNode) {
+				if (aNode->getID() == lY) {
+					return true;
+				}
+				else {
+					return false;
+				}
+				});
+			std::cout << (aRes ? aRes->getID() : -1) << std::endl;
 		}
 	}
 }
