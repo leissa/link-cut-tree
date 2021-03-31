@@ -3,10 +3,11 @@
 #include "LinkCutTree.h"
 #include "Utils.h"
 #include "Node.h"
+#include "OpTreeNode.h"
 
 int main()
 {
-	LinkCutTree<int> lLct;
+	LinkCutTree<int, OpTreeNode> lLct;
 	std::vector<Node<int>*> lNodes;
 	std::map<Node<int>*, std::vector<Node<int>*>> lBackpointers;
 	for (int i = 0; i < 100; i++) {
@@ -48,10 +49,6 @@ int main()
 			std::cin >> lX;
 			lLct[lX]->cut();
 		}
-		else if (lInput.compare("expose") == 0) {
-			std::cin >> lX;
-			lLct[lX]->expose();
-		}
 		else if (lInput.compare("root") == 0) {
 			std::cin >> lX;
 			std::cout << lLct[lX]->findRoot()->getKey() << std::endl;
@@ -64,15 +61,15 @@ int main()
 		}
 		else if (lInput.compare("info") == 0) {
 			std::cin >> lX;
-			for (int i = 0; i < 4; i++) {
-				std::cout << lLct[lX]->getFlag(static_cast<Node<int>::flagType>(3 - i));
+			for (int i = 0; i < 6; i++) {
+				std::cout << lLct[lX]->getFlag(static_cast<OpTreeNode<int>::flagType>(5 - i));
 			}
 			std::cout << std::endl;
 		}
 		else if (lInput.compare("random") == 0) {
 			std::cin >> lX;
 			lNodes.clear();
-			lLct = createRandomLCT(lX, &lNodes);
+			//lLct = createRandomLCT(lX, &lNodes);
 		}
 		else if (lInput.compare("parent") == 0) {
 			std::cin >> lX;

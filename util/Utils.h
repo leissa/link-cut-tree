@@ -7,6 +7,7 @@
 #include <map>
 #include "Node.h"
 #include "LinkCutTree.h"
+#include "OpTreeNode.h"
 
 ull nCk(int aN, int aK) {
 	ull** lArray = new ull* [aN + 1];
@@ -39,14 +40,14 @@ ull ballot(int i, int j, int n) {
 	return ((j + 1) * nCk(2 * n - i + 1, (2 * n - i + j) / 2 + 1)) / (2 * n - i + 1);
 }
 
-LinkCutTree<int> createRandomJoinTree(int aInnerNodes, ull aSeed = -1, std::vector<Node<int>*>* aNodes = nullptr) {
+LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, ull aSeed = -1, std::vector<Node<int>*>* aNodes = nullptr) {
 	if (aSeed == -1) {
 		ull lCatalan = ballot(0, 0, aInnerNodes);
 		srand(time(nullptr));
 		aSeed = rand() % lCatalan;
 	}
-	LinkCutTree<int> lLCT;
-	Node<int>* lCurrent = lLCT.createTree(1, 1);
+	LinkCutTree<int, OpTreeNode> lLCT;
+	OpTreeNode<int>* lCurrent = lLCT.createTree(1, 1);
 	bool lLeft = true;
 	int lNoParOpen = 1;
 	int lNoParClose = 0;
@@ -59,7 +60,7 @@ LinkCutTree<int> createRandomJoinTree(int aInnerNodes, ull aSeed = -1, std::vect
 			lNoParClose++;
 			if (!lLeft) {
 				lCurrent = lCurrent->findParent(); // can not be null
-				while (lCurrent->getFlag(Node<int>::HAS_RIGHT_CHILD)) {
+				while (lCurrent->getFlag(OpTreeNode<int>::HAS_RIGHT_CHILD)) {
 					lCurrent = lCurrent->findParent();
 				}
 			}
@@ -86,45 +87,6 @@ LinkCutTree<int> createRandomJoinTree(int aInnerNodes, ull aSeed = -1, std::vect
 	return lLCT;
 }
 
-std::vector<Node<int>*> createRandomSplayTree(int a, int b, int offset) {
-	std::vector<Node<int>*> v;
-	int n = a + rand() % (b - a + 1);
-
-	for (int i = 0; i < n; i++) {
-		v.push_back(new Node<int>(i + offset));
-		v[i]->setRoot(false);
-	}
-
-	std::shuffle(std::begin(v), std::end(v), std::default_random_engine(std::random_device()()));
-	v.at(0)->setRoot(true);
-	for (int i = 1; i < v.size(); i++) {
-		Node<int>* p = v[0];
-		while (true) {
-			if (v[i]->getKey() > p->getKey()) {
-				if (!p->right()) {
-					p->setRight(v[i]);
-					v[i]->setParent(p);
-					break;
-				}
-				else {
-					p = p->right();
-				}
-			}
-			else {
-				if (!p->left()) {
-					p->setLeft(v[i]);
-					v[i]->setParent(p);
-					break;
-				}
-				else {
-					p = p->left();
-				}
-			}
-		}
-	}
-	return v;
-}
-
 LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<Node<int>*>* aNodes = nullptr) {
 	srand(time(nullptr));
 	aNodes->clear();
@@ -139,7 +101,6 @@ LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<Node<int>*>* aNodes
 		}
 		aLCT[i]->link(aLCT[rand() % i]);
 	}
-	//TODO random links and cuts
 	return aLCT;
 }
 

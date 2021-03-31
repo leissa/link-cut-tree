@@ -13,55 +13,38 @@ public:
 	T& getKey();
 	int getID();
 	static int idCounter;
-	void expose();
 
 	// the following methods refer to the auxiliary tree
 	bool isRoot() const;
-	void setRoot(bool aValue);
 
 	Node* left() const; // look for alt. getter/setter model where setters are not effectively redundant
 	Node* right() const; // or return pointers to const and disallow setting pointers from outside Node class
 	Node* parent() const; // -> and change util class accordingly
 
-	void setLeft(Node* aLeft);
-	void setRight(Node* aRight);
-	void setParent(Node* aParent);
-
 	// the following refer to the represented tree (including all types of flags)
-	bool link(Node* aOther);
-	bool linkLeft(Node* aOther);
-	bool linkRight(Node* aOther);
+	virtual bool link(Node* aOther);
 
-	void cut();
+	virtual void cut();
 
-	Node* findRoot();
-	Node* findParent();
-	Node* lowestCommonAncestor(Node* aOther);
+	virtual Node* findRoot();
+	virtual Node* findParent();
+	virtual Node* lowestCommonAncestor(Node* aOther);
 	template<typename F> void path(F aFunction);
 	template<typename F> Node<T>* find_if(F aFunction);
 
-	enum flagType { // maybe only include in dedicated subclass and restrict regular link
-		IS_LEFT_CHILD,
-		IS_RIGHT_CHILD,
-		HAS_LEFT_CHILD,
-		HAS_RIGHT_CHILD,
-	};
-	void setFlag(flagType aType, bool aValue = true);
-	bool getFlag(flagType aType);
-
-private:
+protected:
 	Node* _left, * _right, * _parent;
 	T _key;
 	int _id;
 	bool _isRoot;
-	std::bitset<4> _flags;
 	void rotR();
 	void rotL();
 	void splay();
+	void expose();
 };
 
 template<typename T> Node<T>::Node(const T& aKey, int aID) : _left(nullptr), _right(nullptr),
-_parent(nullptr), _key(aKey), _isRoot(true), _flags(0), _id(aID) {}
+_parent(nullptr), _key(aKey), _isRoot(true), _id(aID) {}
 
 template<typename T> int Node<T>::idCounter = 0;
 
@@ -183,14 +166,6 @@ template<typename T> template<typename F> Node<T>* Node<T>::find_if(F aFunction)
 	return nullptr;
 }
 
-template<typename T> void Node<T>::setFlag(flagType aType, bool aValue) {
-	_flags.set(aType, aValue);
-}
-
-template<typename T> bool Node<T>::getFlag(flagType aType) {
-	return _flags[aType];
-}
-
 /*
 * Link the represented tree that has this node as its root to an arbitrary node in
 * another tree. If this is not the root of the represened tree that it belongs to,
@@ -209,28 +184,6 @@ template<typename T> bool Node<T>::link(Node<T>* aOther) {
 	return true;
 }
 
-template<typename T> bool Node<T>::linkLeft(Node<T>* aOther) {
-	if (aOther->getFlag(HAS_LEFT_CHILD) || !link(aOther)) {
-		return false;
-	}
-	else {
-		aOther->setFlag(HAS_LEFT_CHILD);
-		this->setFlag(IS_LEFT_CHILD);
-		return true;
-	}
-}
-
-template<typename T> bool Node<T>::linkRight(Node<T>* aOther) {
-	if (aOther->getFlag(HAS_RIGHT_CHILD) || !link(aOther)) {
-		return false;
-	}
-	else {
-		aOther->setFlag(HAS_RIGHT_CHILD);
-		this->setFlag(IS_RIGHT_CHILD);
-		return true;
-	}
-}
-
 /*
 * Remove the subtree of the represented tree that has this node as its root,
 * creating a new represented tree. If this is already the root of the represented
@@ -240,14 +193,6 @@ template<typename T> void Node<T>::cut() {
 	expose();
 	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
 		Node* lParent = findParent();
-		if (lParent->getFlag(HAS_LEFT_CHILD) && getFlag(IS_LEFT_CHILD)) {
-			lParent->setFlag(HAS_LEFT_CHILD, 0);
-			this->setFlag(IS_LEFT_CHILD, 0);
-		}
-		if (lParent->getFlag(HAS_RIGHT_CHILD) && getFlag(IS_RIGHT_CHILD)) {
-			lParent->setFlag(HAS_RIGHT_CHILD, 0);
-			this->setFlag(IS_RIGHT_CHILD, 0);
-		}
 		_left->_isRoot = true;
 		_left->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
@@ -351,28 +296,12 @@ template<typename T> Node<T>* Node<T>::parent() const {
 	return _parent;
 }
 
-template<typename T> void Node<T>::setLeft(Node* aLeft) {
-	_left = aLeft;
-}
-
-template<typename T> void Node<T>::setRight(Node* aRight) {
-	_right = aRight;
-}
-
-template<typename T> void Node<T>::setParent(Node* aParent) {
-	_parent = aParent;
-}
-
 template<typename T> T& Node<T>::getKey() {
 	return _key;
 }
 
 template<typename T> bool Node<T>::isRoot() const {
 	return _isRoot;
-}
-
-template<typename T> void Node<T>::setRoot(bool aValue) {
-	_isRoot = aValue;
 }
 
 #endif
