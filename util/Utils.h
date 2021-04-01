@@ -5,12 +5,12 @@
 #include <vector>
 #include <random>
 #include <map>
-#include "Node.h"
+#include "LctNode.h"
 #include "LinkCutTree.h"
 #include "OpTreeNode.h"
 
 ull nCk(int aN, int aK) {
-	ull** lArray = new ull* [aN + 1];
+	ull** lArray = new ull * [aN + 1];
 	for (int i = 0; i < aN + 1; i++) {
 		lArray[i] = new ull[aK + 1];
 	}
@@ -18,7 +18,8 @@ ull nCk(int aN, int aK) {
 		for (int j = 0; j < aK + 1; j++) {
 			if (j == 0 || j == aN) {
 				lArray[i][j] = 1;
-			} else if(j > i) {
+			}
+			else if (j > i) {
 				lArray[i][j] = 0;
 			}
 			else {
@@ -40,11 +41,11 @@ ull ballot(int i, int j, int n) {
 	return ((j + 1) * nCk(2 * n - i + 1, (2 * n - i + j) / 2 + 1)) / (2 * n - i + 1);
 }
 
-LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, ull aSeed = -1, std::vector<Node<int>*>* aNodes = nullptr) {
+LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, std::vector<LctNode<int>*>* aNodes = nullptr, ull aSeed = -1) {
 	if (aSeed == -1) {
 		ull lCatalan = ballot(0, 0, aInnerNodes);
-		srand(time(nullptr));
-		aSeed = rand() % lCatalan;
+		aSeed = (((ull)rand() << 32) | rand()) % lCatalan;
+		std::cout << aSeed << " / " << lCatalan << std::endl;
 	}
 	LinkCutTree<int, OpTreeNode> lLCT;
 	OpTreeNode<int>* lCurrent = lLCT.createTree(1, 1);
@@ -53,6 +54,7 @@ LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, ull aSeed = -
 	int lNoParClose = 0;
 	ull lPaths = 0; // holds the number of possible paths to (2n,0) from current position offset by (1,1)
 	// location in grid is (lNoParOpen + lNoParClose, lNoParOpen - lNoParClose)
+	int lNodeCount = 1;
 	for (int i = 2; i <= 2 * aInnerNodes; i++) {
 		lPaths = ballot(lNoParOpen + lNoParClose + 1, lNoParOpen - lNoParClose + 1, aInnerNodes);
 		if (lPaths <= aSeed) {
@@ -67,27 +69,28 @@ LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, ull aSeed = -
 			lLeft = false; // tree after closing par. must be right child
 		}
 		else {
+			lNodeCount++;
 			if (aNodes) {
-				aNodes->push_back(lLCT.createTree(i, i));
+				aNodes->push_back(lLCT.createTree(lNodeCount, lNodeCount));
 			}
 			else {
-				lLCT.createTree(i, i);
+				lLCT.createTree(lNodeCount, lNodeCount);
 			}
 			if (lLeft) {
-				lLCT[i]->linkLeft(lCurrent);
+				lLCT[lNodeCount]->linkLeft(lCurrent);
 			}
 			else {
-				lLCT[i]->linkRight(lCurrent);
+				lLCT[lNodeCount]->linkRight(lCurrent);
 			}
 			lLeft = true;
-			lCurrent = lLCT[i];
+			lCurrent = lLCT[lNodeCount];
 			lNoParOpen++;
 		}
 	}
 	return lLCT;
 }
 
-LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<Node<int>*>* aNodes = nullptr) {
+LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<LctNode<int>*>* aNodes = nullptr) {
 	srand(time(nullptr));
 	aNodes->clear();
 	LinkCutTree<int> aLCT;
@@ -104,28 +107,28 @@ LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<Node<int>*>* aNodes
 	return aLCT;
 }
 
-void updateBackpointers(std::vector<Node<int>*>& aNodes,
-	std::map<Node<int>*, std::vector<Node<int>*>>& aBackpointers)
+void updateBackpointers(std::vector<LctNode<int>*>& aNodes,
+	std::map<LctNode<int>*, std::vector<LctNode<int>*>>& aBackpointers)
 {
 	aBackpointers.clear();
 	for (int i = 0; i < aNodes.size(); i++) {
 		if (aNodes[i]->isRoot() && aNodes[i]->parent()) {
 			if (aBackpointers.count(aNodes[i]->parent()) == 0) {
-				aBackpointers[aNodes[i]->parent()] = std::vector<Node<int>*>();
+				aBackpointers[aNodes[i]->parent()] = std::vector<LctNode<int>*>();
 			}
 			aBackpointers[aNodes[i]->parent()].push_back(aNodes[i]);
 		}
 	}
 }
 
-void deleteNodes(std::vector<Node<int>*>* v) {
+void deleteNodes(std::vector<LctNode<int>*>* v) {
 	for (int i = 0; i < v->size(); i++) {
 		delete v->at(i);
 	}
 }
 
-template<typename T> void printSplayTreeRecursive(const std::string& aPrefix, Node<T>* aNode,
-	bool aLeft, std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
+template<typename T> void printSplayTreeRecursive(const std::string& aPrefix, LctNode<T>* aNode,
+	bool aLeft, std::map<LctNode<T>*, std::vector<LctNode<T>*>>* aBackpointers)
 {
 	std::cout << aPrefix << (aLeft ? "|--" : "|--") << aNode->getID() << (aNode->isRoot() ? "r" : "");
 	if (aNode->parent()) {
@@ -146,8 +149,8 @@ template<typename T> void printSplayTreeRecursive(const std::string& aPrefix, No
 	}
 }
 
-template<typename T> void printSplayTree(Node<T>* aNode,
-	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
+template<typename T> void printSplayTree(LctNode<T>* aNode,
+	std::map<LctNode<T>*, std::vector<LctNode<T>*>>* aBackpointers)
 {
 	while (!aNode->_isRoot) {
 		aNode = aNode->parent();
@@ -155,8 +158,8 @@ template<typename T> void printSplayTree(Node<T>* aNode,
 	printSplayTreeRecursive("", aNode, false, aBackpointers);
 }
 
-template<typename T> void printLCT(Node<T>* aNode,
-	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers)
+template<typename T> void printLCT(LctNode<T>* aNode,
+	std::map<LctNode<T>*, std::vector<LctNode<T>*>>* aBackpointers)
 {
 	while (aNode->parent()) {
 		aNode = aNode->parent();
@@ -164,8 +167,8 @@ template<typename T> void printLCT(Node<T>* aNode,
 	printSplayTreeRecursive("", aNode, false, aBackpointers);
 }
 
-template<typename T> int printReprTree(Node<T>* aNode,
-	std::map<Node<T>*, std::vector<Node<T>*>>* aBackpointers, bool aDiscoverParent = true, int aDepth = 0)
+template<typename T> int printReprTree(LctNode<T>* aNode,
+	std::map<LctNode<T>*, std::vector<LctNode<T>*>>* aBackpointers, bool aDiscoverParent = true, int aDepth = 0)
 {
 	while (aDiscoverParent && aNode->parent()) {
 		aNode = aNode->parent();
@@ -173,7 +176,21 @@ template<typename T> int printReprTree(Node<T>* aNode,
 	if (aNode->left()) {
 		aDepth = printReprTree(aNode->left(), aBackpointers, false, aDepth);
 	}
-	std::cout << std::string(aDepth * 4L, ' ') << aNode->getID() << std::endl;
+	std::cout << std::string(aDepth * 4L, ' ') << aNode->getID();
+	OpTreeNode<T>* p;
+	p = dynamic_cast<OpTreeNode<T>*>(aNode);
+	if (p != nullptr) {
+		if (p->getFlag(OpTreeNode<T>::IS_LEFT_CHILD)) {
+			std::cout << " (l)";
+		}
+		else if (p->getFlag(OpTreeNode<T>::IS_RIGHT_CHILD)) {
+			std::cout << " (r)";
+		}
+		else if (p->getFlag(OpTreeNode<T>::IS_ONLY_CHILD)) {
+			std::cout << " (o)";
+		}
+	}
+	std::cout << std::endl;
 	aDepth++;
 	if (aBackpointers && aBackpointers->count(aNode)) {
 		for (int i = 0; i < aBackpointers->at(aNode).size(); i++) {

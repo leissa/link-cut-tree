@@ -1,19 +1,20 @@
 #include <iostream>
 #include <string>
-#include "LinkCutTree.h"
 #include "Utils.h"
-#include "Node.h"
+#include "LctNode.h"
 #include "OpTreeNode.h"
+#include "LinkCutTree.h"
 
 int main()
 {
 	LinkCutTree<int, OpTreeNode> lLct;
-	std::vector<Node<int>*> lNodes;
-	std::map<Node<int>*, std::vector<Node<int>*>> lBackpointers;
+	std::vector<LctNode<int>*> lNodes;
+	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
 	for (int i = 0; i < 100; i++) {
 		lNodes.push_back(lLct.createTree(i, i));
 	}
 	int lX, lY;
+	srand(time(nullptr));
 	while (true) {
 		std::string lInput;
 		std::cin >> lInput;
@@ -33,7 +34,7 @@ int main()
 		else if (lInput.compare("link") == 0) {
 			std::cin >> lX;
 			std::cin >> lY;
-			lLct[lX]->link(lLct[lY]);
+			//lLct[lX]->link(lLct[lY]);
 		}
 		else if (lInput.compare("ll") == 0) {
 			std::cin >> lX;
@@ -44,6 +45,11 @@ int main()
 			std::cin >> lX;
 			std::cin >> lY;
 			lLct[lX]->linkRight(lLct[lY]);
+		}
+		else if (lInput.compare("lo") == 0) {
+			std::cin >> lX;
+			std::cin >> lY;
+			lLct[lX]->linkOnly(lLct[lY]);
 		}
 		else if (lInput.compare("cut") == 0) {
 			std::cin >> lX;
@@ -78,23 +84,23 @@ int main()
 		}
 		else if (lInput.compare("printPath") == 0) {
 			std::cin >> lX;
-			lLct[lX]->path([](Node<int>* aNode)
+			lLct[lX]->path([](LctNode<int>* aNode)
 				{
 					std::cout << aNode->getID() << std::endl;
 				});
 		}
 		else if (lInput.compare("randomJoinTree") == 0) {
 			std::cin >> lX; // number of inner nodes
-			std::cin >> lY; // seed in range [0, catalan(n)[
+			// std::cin >> lY; // seed in range [0, catalan(n)[
 			lNodes.clear();
-			lLct = createRandomJoinTree(lX, lY, &lNodes);
+			lLct = createRandomJoinTree(lX, &lNodes);
 			updateBackpointers(lNodes, lBackpointers);
 			printReprTree(lLct[1], &lBackpointers);
 		}
 		else if (lInput.compare("find") == 0) {
 			std::cin >> lX;
 			std::cin >> lY;
-			Node<int>* aRes = lLct[lX]->find_if([lY](Node<int>* aNode) {
+			LctNode<int>* aRes = lLct[lX]->find_if([lY](LctNode<int>* aNode) {
 				if (aNode->getID() == lY) {
 					return true;
 				}

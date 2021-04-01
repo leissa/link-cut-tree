@@ -2,10 +2,9 @@
 #define LINK_CUT_TREE_H
 
 #include <map>
-#include <vector>
-#include "Node.h"
+#include "LctNode.h"
 
-template<typename V, template<typename> class T = Node> class LinkCutTree {
+template<typename V, template<typename> class T = LctNode> class LinkCutTree {
 public:
 	LinkCutTree<V, T>();
 	T<V>* createTree(const V& aKey, int id = T<V>::idCounter++);

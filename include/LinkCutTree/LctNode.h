@@ -1,14 +1,11 @@
 #ifndef LINK_CUT_TREE_NODE_H
 #define LINK_CUT_TREE_NODE_H
 
-#include <map>
-#include <vector>
-#include <bitset>
 
-template<typename T> class Node {
+template<typename T> class LctNode {
 public:
-	Node() = default;
-	Node(const T& key, int aID = idCounter++);
+	LctNode();
+	LctNode(const T& key, int aID = idCounter++);
 
 	T& getKey();
 	int getID();
@@ -17,23 +14,23 @@ public:
 	// the following methods refer to the auxiliary tree
 	bool isRoot() const;
 
-	Node* left() const; // look for alt. getter/setter model where setters are not effectively redundant
-	Node* right() const; // or return pointers to const and disallow setting pointers from outside Node class
-	Node* parent() const; // -> and change util class accordingly
+	LctNode* left() const;
+	LctNode* right() const;
+	LctNode* parent() const;
 
-	// the following refer to the represented tree (including all types of flags)
-	virtual bool link(Node* aOther);
+	// the following refer to the represented tree
+	virtual bool link(LctNode* aOther);
 
 	virtual void cut();
 
-	virtual Node* findRoot();
-	virtual Node* findParent();
-	virtual Node* lowestCommonAncestor(Node* aOther);
+	virtual LctNode* findRoot();
+	virtual LctNode* findParent();
+	virtual LctNode* lowestCommonAncestor(LctNode* aOther);
 	template<typename F> void path(F aFunction);
-	template<typename F> Node<T>* find_if(F aFunction);
+	template<typename F> LctNode<T>* find_if(F aFunction);
 
 protected:
-	Node* _left, * _right, * _parent;
+	LctNode* _left, * _right, * _parent;
 	T _key;
 	int _id;
 	bool _isRoot;
@@ -43,16 +40,19 @@ protected:
 	void expose();
 };
 
-template<typename T> Node<T>::Node(const T& aKey, int aID) : _left(nullptr), _right(nullptr),
+template<typename T> LctNode<T>::LctNode()
+	: _left(nullptr), _right(nullptr), _parent(nullptr), _key(T()), _isRoot(true), _id(idCounter++) {}
+
+template<typename T> LctNode<T>::LctNode(const T& aKey, int aID) : _left(nullptr), _right(nullptr),
 _parent(nullptr), _key(aKey), _isRoot(true), _id(aID) {}
 
-template<typename T> int Node<T>::idCounter = 0;
+template<typename T> int LctNode<T>::idCounter = 0;
 
-template<typename T> int Node<T>::getID() {
+template<typename T> int LctNode<T>::getID() {
 	return _id;
 }
 
-template<typename T> void Node<T>::expose() {
+template<typename T> void LctNode<T>::expose() {
 	splay();
 	if (_right) {
 		_right->_isRoot = true;
@@ -69,9 +69,9 @@ template<typename T> void Node<T>::expose() {
 	}
 }
 
-template<typename T> Node<T>* Node<T>::findRoot() {
+template<typename T> LctNode<T>* LctNode<T>::findRoot() {
 	expose();
-	Node* lRoot = this;
+	LctNode* lRoot = this;
 	while (lRoot->_left) {
 		lRoot = lRoot->_left;
 	}
@@ -79,8 +79,8 @@ template<typename T> Node<T>* Node<T>::findRoot() {
 	return lRoot;
 }
 
-template<typename T> Node<T>* Node<T>::findParent() {
-	Node* lTemp = this;
+template<typename T> LctNode<T>* LctNode<T>::findParent() {
+	LctNode* lTemp = this;
 	if (_left) { // parent must be found in left subtree
 		lTemp = _left;
 		while (lTemp->_right) {
@@ -114,8 +114,8 @@ template<typename T> Node<T>* Node<T>::findParent() {
 * Find the lowest common ancestor between this Node and Node other.
 * If this and other are not on the same represented tree nullptr is returned.
 */
-template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* aOther) {
-	Node* lRoot = this->findRoot();
+template<typename T> LctNode<T>* LctNode<T>::lowestCommonAncestor(LctNode* aOther) {
+	LctNode* lRoot = this->findRoot();
 	if (lRoot != aOther->findRoot()) {
 		return nullptr;
 	}
@@ -128,7 +128,7 @@ template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* aOther) {
 	else {
 		this->expose();
 		aOther->expose();
-		Node* lLca = this;
+		LctNode* lLca = this;
 		while (!lLca->_isRoot) {
 			lLca = lLca->_parent;
 		}
@@ -141,9 +141,9 @@ template<typename T> Node<T>* Node<T>::lowestCommonAncestor(Node* aOther) {
 *	void aFunction(Node* aNode)
 * calls aFunction on every node on the path from this to the root of the repr. tree
 */
-template<typename T> template<typename F> void Node<T>::path(F aFunction)
+template<typename T> template<typename F> void LctNode<T>::path(F aFunction)
 {
-	Node* lTemp = this;
+	LctNode* lTemp = this;
 	do {
 		aFunction(lTemp);
 	} while ((lTemp = lTemp->findParent()) != nullptr);
@@ -155,9 +155,9 @@ template<typename T> template<typename F> void Node<T>::path(F aFunction)
 * calls aFunction on every node on the path from this to the root of the repr. tree
 * and returns a pointer to the first node for which aFunction evaluates to true
 */
-template<typename T> template<typename F> Node<T>* Node<T>::find_if(F aFunction)
+template<typename T> template<typename F> LctNode<T>* LctNode<T>::find_if(F aFunction)
 {
-	Node* lTemp = this;
+	LctNode* lTemp = this;
 	do {
 		if (aFunction(lTemp)) {
 			return lTemp;
@@ -172,7 +172,7 @@ template<typename T> template<typename F> Node<T>* Node<T>::find_if(F aFunction)
 * false is returned. This method assumes that this and other are not on the same
 * represented tree. Returns true on success.
 */
-template<typename T> bool Node<T>::link(Node<T>* aOther) {
+template<typename T> bool LctNode<T>::link(LctNode<T>* aOther) {
 	expose();
 	if (_left) {
 		return false; // v is not the root of its represented tree
@@ -189,10 +189,10 @@ template<typename T> bool Node<T>::link(Node<T>* aOther) {
 * creating a new represented tree. If this is already the root of the represented
 * tree that this belongs to, this method has no effect on the represented tree.
 */
-template<typename T> void Node<T>::cut() {
+template<typename T> void LctNode<T>::cut() {
 	expose();
 	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
-		Node* lParent = findParent();
+		LctNode* lParent = findParent();
 		_left->_isRoot = true;
 		_left->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
@@ -200,7 +200,7 @@ template<typename T> void Node<T>::cut() {
 }
 
 
-template<typename T> void Node<T>::rotR() {
+template<typename T> void LctNode<T>::rotR() {
 	_left->_parent = _parent;
 	if (_parent) {
 		if (_parent->_left == this) {
@@ -225,7 +225,7 @@ template<typename T> void Node<T>::rotR() {
 	}
 }
 
-template<typename T> void Node<T>::rotL() {
+template<typename T> void LctNode<T>::rotL() {
 	_right->_parent = _parent;
 	if (_parent) {
 		if (_parent->_right == this) {
@@ -250,7 +250,7 @@ template<typename T> void Node<T>::rotL() {
 	}
 }
 
-template<typename T> void Node<T>::splay() {
+template<typename T> void LctNode<T>::splay() {
 	while (!_isRoot) {
 		// zig
 		if (_parent->_isRoot) {
@@ -284,23 +284,23 @@ template<typename T> void Node<T>::splay() {
 	}
 }
 
-template<typename T> Node<T>* Node<T>::left() const {
+template<typename T> LctNode<T>* LctNode<T>::left() const {
 	return _left;
 }
 
-template<typename T> Node<T>* Node<T>::right() const {
+template<typename T> LctNode<T>* LctNode<T>::right() const {
 	return _right;
 }
 
-template<typename T> Node<T>* Node<T>::parent() const {
+template<typename T> LctNode<T>* LctNode<T>::parent() const {
 	return _parent;
 }
 
-template<typename T> T& Node<T>::getKey() {
+template<typename T> T& LctNode<T>::getKey() {
 	return _key;
 }
 
-template<typename T> bool Node<T>::isRoot() const {
+template<typename T> bool LctNode<T>::isRoot() const {
 	return _isRoot;
 }
 
