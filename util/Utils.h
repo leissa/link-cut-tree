@@ -1,18 +1,18 @@
 #ifndef LINK_CUT_TREE_UTILS_H
 #define LINK_CUT_TREE_UTILS_H
-#define ull unsigned long long
 
 #include <vector>
 #include <random>
 #include <map>
+#include "cstdint"
 #include "LctNode.h"
 #include "LinkCutTree.h"
 #include "OpTreeNode.h"
 
-ull nCk(int aN, int aK) {
-	ull** lArray = new ull * [aN + 1];
+uint64_t nCk(int aN, int aK) {
+	uint64_t** lArray = new uint64_t * [aN + 1];
 	for (int i = 0; i < aN + 1; i++) {
-		lArray[i] = new ull[aK + 1];
+		lArray[i] = new uint64_t[aK + 1];
 	}
 	for (int i = 0; i < aN + 1; i++) {
 		for (int j = 0; j < aK + 1; j++) {
@@ -27,7 +27,7 @@ ull nCk(int aN, int aK) {
 			}
 		}
 	}
-	ull res = lArray[aN][aK];
+	uint64_t res = lArray[aN][aK];
 	for (int i = 0; i < aN; ++i) {
 		delete[] lArray[i];
 	}
@@ -37,14 +37,14 @@ ull nCk(int aN, int aK) {
 
 // ballot(0,0,n) = catalan(n)
 // calculate number of paths from (i,j) to (2n,0) for n inner nodes
-ull ballot(int i, int j, int n) {
+uint64_t ballot(int i, int j, int n) {
 	return ((j + 1) * nCk(2 * n - i + 1, (2 * n - i + j) / 2 + 1)) / (2 * n - i + 1);
 }
 
-LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, std::vector<LctNode<int>*>* aNodes = nullptr, ull aSeed = -1) {
+LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, std::vector<LctNode<int>*>* aNodes = nullptr, uint64_t aSeed = -1) {
 	if (aSeed == -1) {
-		ull lCatalan = ballot(0, 0, aInnerNodes);
-		aSeed = (((ull)rand() << 32) | rand()) % lCatalan;
+		uint64_t lCatalan = ballot(0, 0, aInnerNodes);
+		aSeed = (((uint64_t)rand() << 32) | rand()) % lCatalan;
 		std::cout << aSeed << " / " << lCatalan << std::endl;
 	}
 	LinkCutTree<int, OpTreeNode> lLCT;
@@ -52,7 +52,7 @@ LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, std::vector<L
 	bool lLeft = true;
 	int lNoParOpen = 1;
 	int lNoParClose = 0;
-	ull lPaths = 0; // holds the number of possible paths to (2n,0) from current position offset by (1,1)
+	uint64_t lPaths = 0; // holds the number of possible paths to (2n,0) from current position offset by (1,1)
 	// location in grid is (lNoParOpen + lNoParClose, lNoParOpen - lNoParClose)
 	int lNodeCount = 1;
 	for (int i = 2; i <= 2 * aInnerNodes; i++) {

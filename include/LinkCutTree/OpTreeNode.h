@@ -7,7 +7,7 @@
 template<typename T> class OpTreeNode : public LctNode<T> {
 public:
 	OpTreeNode() = default;
-	OpTreeNode(const T& key, int aID = idCounter++);
+	OpTreeNode(const T& aContent, int aID = idCounter++);
 
 	OpTreeNode* findRoot();
 	OpTreeNode* findParent();
@@ -34,7 +34,7 @@ private:
 	using LctNode::link;
 };
 
-template<typename T> OpTreeNode<T>::OpTreeNode(const T& aKey, int aID) : LctNode<T>(aKey, aID), _flags(0) {}
+template<typename T> OpTreeNode<T>::OpTreeNode(const T& aContent, int aID) : LctNode<T>(aContent, aID), _flags(0) {}
 
 template<typename T> void OpTreeNode<T>::cut() {
 	expose();

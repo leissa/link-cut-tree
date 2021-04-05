@@ -5,9 +5,9 @@
 template<typename T> class LctNode {
 public:
 	LctNode();
-	LctNode(const T& key, int aID = idCounter++);
+	LctNode(const T& aContent, int aID = idCounter++);
 
-	T& getKey();
+	const T& getContent();
 	int getID();
 	static int idCounter;
 
@@ -20,7 +20,6 @@ public:
 
 	// the following refer to the represented tree
 	virtual bool link(LctNode* aOther);
-
 	virtual void cut();
 
 	virtual LctNode* findRoot();
@@ -31,7 +30,7 @@ public:
 
 protected:
 	LctNode* _left, * _right, * _parent;
-	T _key;
+	T _content;
 	int _id;
 	bool _isRoot;
 	void rotR();
@@ -41,10 +40,10 @@ protected:
 };
 
 template<typename T> LctNode<T>::LctNode()
-	: _left(nullptr), _right(nullptr), _parent(nullptr), _key(T()), _isRoot(true), _id(idCounter++) {}
+	: _left(nullptr), _right(nullptr), _parent(nullptr), _content(T()), _isRoot(true), _id(idCounter++) {}
 
-template<typename T> LctNode<T>::LctNode(const T& aKey, int aID) : _left(nullptr), _right(nullptr),
-_parent(nullptr), _key(aKey), _isRoot(true), _id(aID) {}
+template<typename T> LctNode<T>::LctNode(const T& aContent, int aID) : _left(nullptr), _right(nullptr),
+_parent(nullptr), _content(aContent), _isRoot(true), _id(aID) {}
 
 template<typename T> int LctNode<T>::idCounter = 0;
 
@@ -296,8 +295,8 @@ template<typename T> LctNode<T>* LctNode<T>::parent() const {
 	return _parent;
 }
 
-template<typename T> T& LctNode<T>::getKey() {
-	return _key;
+template<typename T> const T& LctNode<T>::getContent() {
+	return _content;
 }
 
 template<typename T> bool LctNode<T>::isRoot() const {

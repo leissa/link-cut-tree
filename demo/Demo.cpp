@@ -57,7 +57,7 @@ int main()
 		}
 		else if (lInput.compare("root") == 0) {
 			std::cin >> lX;
-			std::cout << lLct[lX]->findRoot()->getKey() << std::endl;
+			std::cout << lLct[lX]->findRoot()->getContent() << std::endl;
 		}
 		else if (lInput.compare("lca") == 0) {
 			std::cin >> lX;
