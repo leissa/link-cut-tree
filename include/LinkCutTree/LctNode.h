@@ -28,6 +28,7 @@ public:
 	template<typename F> void path(F aFunction);
 	template<typename F> LctNode<T>* find_if(F aFunction);
 
+
 protected:
 	LctNode* _left, * _right, * _parent;
 	T _content;

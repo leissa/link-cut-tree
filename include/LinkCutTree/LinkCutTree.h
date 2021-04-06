@@ -7,8 +7,8 @@
 template<typename V, template<typename> class T = LctNode> class LinkCutTree {
 public:
 	LinkCutTree<V, T>();
-	T<V>* createTree(const V& aKey, int id = T<V>::idCounter++);
-	T<V>* operator[](const V& aKey);
+	T<V>* createTree(const V& aContent, int id = T<V>::idCounter++);
+	T<V>* operator[](const V& aContent);
 
 private:
 	std::map<V, T<V>> _nodes;
@@ -16,18 +16,18 @@ private:
 
 template<typename V, template<typename> class T> LinkCutTree<V, T>::LinkCutTree() : _nodes(std::map<V, T<V>>()) {}
 
-template<typename V, template<typename> class T> T<V>* LinkCutTree<V, T>::createTree(const V& aKey, int aID)
+template<typename V, template<typename> class T> T<V>* LinkCutTree<V, T>::createTree(const V& aContent, int aID)
 {
-	if (!this->_nodes.count(aKey)) {
-		_nodes.insert(std::make_pair(aKey, T<V>(aKey, aID)));
+	if (!this->_nodes.count(aContent)) {
+		_nodes.insert(std::make_pair(aContent, T<V>(aContent, aID)));
 	}
-	return &(this->_nodes[aKey]);
+	return &(this->_nodes[aContent]);
 }
 
-template<typename V, template<typename> class T> T<V>* LinkCutTree<V, T>::operator[](const V& aKey)
+template<typename V, template<typename> class T> T<V>* LinkCutTree<V, T>::operator[](const V& aContent)
 {
-	if (this->_nodes.count(aKey)) {
-		return &(this->_nodes[aKey]);
+	if (this->_nodes.count(aContent)) {
+		return &(this->_nodes[aContent]);
 	}
 	else {
 		return nullptr;

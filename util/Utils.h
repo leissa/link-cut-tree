@@ -42,11 +42,11 @@ uint64_t ballot(int i, int j, int n) {
 }
 
 LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, std::vector<LctNode<int>*>* aNodes = nullptr, uint64_t aSeed = -1) {
+	uint64_t lCatalan = ballot(0, 0, aInnerNodes);
 	if (aSeed == -1) {
-		uint64_t lCatalan = ballot(0, 0, aInnerNodes);
 		aSeed = (((uint64_t)rand() << 32) | rand()) % lCatalan;
-		std::cout << aSeed << " / " << lCatalan << std::endl;
 	}
+	std::cout << aSeed << " / " << lCatalan << std::endl;
 	LinkCutTree<int, OpTreeNode> lLCT;
 	OpTreeNode<int>* lCurrent = lLCT.createTree(1, 1);
 	bool lLeft = true;
@@ -176,7 +176,7 @@ template<typename T> int printReprTree(LctNode<T>* aNode,
 	if (aNode->left()) {
 		aDepth = printReprTree(aNode->left(), aBackpointers, false, aDepth);
 	}
-	std::cout << std::string(aDepth * 4L, ' ') << aNode->getID();
+	std::cout << std::string(aDepth * 4, ' ') << aNode->getID();
 	OpTreeNode<T>* p;
 	p = dynamic_cast<OpTreeNode<T>*>(aNode);
 	if (p != nullptr) {
