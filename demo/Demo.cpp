@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "Utils.h"
+#include "LctUtils.h"
 #include "LctNode.h"
 #include "OpTreeNode.h"
 #include "LinkCutTree.h"
@@ -10,13 +10,13 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 	std::cin >> aCmd;
 	if (aCmd.compare("repr") == 0) {
 		std::cin >> lX;
-		updateBackpointers(aNodes, aBackpointers);
-		printReprTree(aLct[lX], &aBackpointers);
+		LctUtils::updateBackpointers(aNodes, aBackpointers);
+		LctUtils::printReprTree(aLct[lX], &aBackpointers);
 	}
 	else if (aCmd.compare("lct") == 0) {
 		std::cin >> lX;
-		updateBackpointers(aNodes, aBackpointers);
-		printLCT(aLct[lX], &aBackpointers);
+		LctUtils::updateBackpointers(aNodes, aBackpointers);
+		LctUtils::printLCT(aLct[lX], &aBackpointers);
 	}
 	else if (aCmd.compare("cut") == 0) {
 		std::cin >> lX;
@@ -68,9 +68,9 @@ void loopDefault() {
 	LinkCutTree<int> lLct;
 	std::vector<LctNode<int>*> lNodes;
 	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
-	lLct = createRandomLCT(25, &lNodes);
-	updateBackpointers(lNodes, lBackpointers);
-	printReprTree(lLct[0], &lBackpointers);
+	lLct = LctUtils::createRandomLCT(25, &lNodes);
+	LctUtils::updateBackpointers(lNodes, lBackpointers);
+	LctUtils::printReprTree(lLct[0], &lBackpointers);
 	std::string lCmd;
 	while (true) {
 		int lX, lY;
@@ -82,9 +82,9 @@ void loopDefault() {
 			}else if (lCmd.compare("random") == 0) {
 				std::cin >> lX;
 				lNodes.clear();
-				lLct = createRandomLCT(lX, &lNodes);
-				updateBackpointers(lNodes, lBackpointers);
-				printReprTree(lLct[0], &lBackpointers);
+				lLct = LctUtils::createRandomLCT(lX, &lNodes);
+				LctUtils::updateBackpointers(lNodes, lBackpointers);
+				LctUtils::printReprTree(lLct[0], &lBackpointers);
 			}
 			else {
 				std::cout << "invalid command" << std::endl;
@@ -99,9 +99,9 @@ void loopOpTree() {
 	std::vector<LctNode<int>*> lNodes;
 	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
 	std::string lCmd;
-	lLct = createRandomJoinTree(25, &lNodes);
-	updateBackpointers(lNodes, lBackpointers);
-	printReprTree(lLct[1], &lBackpointers);
+	lLct = LctUtils::createRandomJoinTree(25, &lNodes);
+	LctUtils::updateBackpointers(lNodes, lBackpointers);
+	LctUtils::printReprTree(lLct[1], &lBackpointers);
 	while (true) {
 		int lX, lY;
 		if (query(lCmd, lLct, lNodes, lBackpointers)) {
@@ -130,17 +130,17 @@ void loopOpTree() {
 			else if (lCmd.compare("randomJoinTree") == 0) {
 				std::cin >> lX; // number of inner nodes
 				lNodes.clear();
-				lLct = createRandomJoinTree(lX, &lNodes);
-				updateBackpointers(lNodes, lBackpointers);
-				printReprTree(lLct[1], &lBackpointers);
+				lLct = LctUtils::createRandomJoinTree(lX, &lNodes);
+				LctUtils::updateBackpointers(lNodes, lBackpointers);
+				LctUtils::printReprTree(lLct[1], &lBackpointers);
 			}
 			else if (lCmd.compare("joinTree") == 0) {
 				std::cin >> lX; // number of inner nodes
 				std::cin >> lY; // seed
 				lNodes.clear();
-				lLct = createRandomJoinTree(lX, &lNodes, lY);
-				updateBackpointers(lNodes, lBackpointers);
-				printReprTree(lLct[1], &lBackpointers);
+				lLct = LctUtils::createRandomJoinTree(lX, &lNodes, lY);
+				LctUtils::updateBackpointers(lNodes, lBackpointers);
+				LctUtils::printReprTree(lLct[1], &lBackpointers);
 			}
 			else {
 				std::cout << "invalid command" << std::endl;

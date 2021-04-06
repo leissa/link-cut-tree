@@ -7,18 +7,10 @@ public:
 	LctNode();
 	LctNode(const T& aContent, int aID = idCounter++);
 
-	const T& getContent();
+	const T& getContent() const;
+	T& getContent();
 	int getID();
-	static int idCounter;
 
-	// the following methods refer to the auxiliary tree
-	bool isRoot() const;
-
-	LctNode* left() const;
-	LctNode* right() const;
-	LctNode* parent() const;
-
-	// the following refer to the represented tree
 	virtual bool link(LctNode* aOther);
 	virtual void cut();
 
@@ -28,6 +20,8 @@ public:
 	template<typename F> void path(F aFunction);
 	template<typename F> LctNode<T>* find_if(F aFunction);
 
+	friend class LctUtils;
+	static int idCounter;
 
 protected:
 	LctNode* _left, * _right, * _parent;
@@ -284,24 +278,12 @@ template<typename T> void LctNode<T>::splay() {
 	}
 }
 
-template<typename T> LctNode<T>* LctNode<T>::left() const {
-	return _left;
-}
-
-template<typename T> LctNode<T>* LctNode<T>::right() const {
-	return _right;
-}
-
-template<typename T> LctNode<T>* LctNode<T>::parent() const {
-	return _parent;
-}
-
-template<typename T> const T& LctNode<T>::getContent() {
+template<typename T> const T& LctNode<T>::getContent() const {
 	return _content;
 }
 
-template<typename T> bool LctNode<T>::isRoot() const {
-	return _isRoot;
+template<typename T> T& LctNode<T>::getContent() {
+	return _content;
 }
 
 #endif
