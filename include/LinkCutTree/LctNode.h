@@ -1,7 +1,6 @@
 #ifndef LINK_CUT_TREE_NODE_H
 #define LINK_CUT_TREE_NODE_H
 
-
 template<typename T> class LctNode {
 public:
 	LctNode();
@@ -193,7 +192,18 @@ template<typename T> void LctNode<T>::cut() {
 	}
 }
 
-
+/**
+*         P            P
+*        /            /
+*       X            B
+*      / \    ->    / \
+*     B   C        D   X
+*    / \              / \
+*   D   E            E   C
+*
+* Rotate the tree around the edge connecting X's left child(B) to this(X).
+* This assumes that X has a left child.
+*/
 template<typename T> void LctNode<T>::rotR() {
 	_left->_parent = _parent;
 	if (_parent) {
@@ -219,6 +229,18 @@ template<typename T> void LctNode<T>::rotR() {
 	}
 }
 
+/**
+*         P              P
+*        /              /
+*       X              B
+*      / \     ->     / \
+*     C   B          X   E
+*        / \        / \
+*       D   E      C   D
+*
+* Rotate the tree around the edge connecting X's right child(B) to this(X).
+* This assumes that X has a right child.
+*/
 template<typename T> void LctNode<T>::rotL() {
 	_right->_parent = _parent;
 	if (_parent) {
@@ -244,6 +266,11 @@ template<typename T> void LctNode<T>::rotL() {
 	}
 }
 
+/**
+* Move this node to the root of its tree by repeatedly performing left and right rotations
+* around the edge connecting this to its parent based on the relative positioning between
+* this, the parent of this and the grandparent of this
+*/
 template<typename T> void LctNode<T>::splay() {
 	while (!_isRoot) {
 		// zig
