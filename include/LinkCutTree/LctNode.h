@@ -16,6 +16,7 @@ public:
 	virtual LctNode* findRoot();
 	virtual LctNode* findParent();
 	virtual LctNode* lowestCommonAncestor(LctNode* aOther);
+	virtual bool isDescendant(LctNode* aOther);
 	template<typename F> void path(F aFunction);
 	template<typename F> LctNode<T>* find_if(F aFunction);
 
@@ -108,11 +109,14 @@ template<typename T> LctNode<T>* LctNode<T>::findParent() {
 * If this and other are not on the same represented tree nullptr is returned.
 */
 template<typename T> LctNode<T>* LctNode<T>::lowestCommonAncestor(LctNode* aOther) {
+	if (aOther->isDescendant(this)) { // also checks for equality
+		return this;
+	}
 	LctNode* lRoot = this->findRoot();
 	if (lRoot != aOther->findRoot()) {
 		return nullptr;
 	}
-	else if (lRoot == this || aOther == this) {
+	else if (lRoot == this) {
 		return this;
 	}
 	else if (lRoot == aOther) {
@@ -157,6 +161,20 @@ template<typename T> template<typename F> LctNode<T>* LctNode<T>::find_if(F aFun
 		}
 	} while ((lTemp = lTemp->findParent()) != nullptr);
 	return nullptr;
+}
+
+/**
+* Return true if node this is a descendant of node aOther.
+* If this equals aOther true is returned.
+*/
+template<typename T> bool LctNode<T>::isDescendant(LctNode<T>* aOther) {
+	LctNode* lTemp = this;
+	do {
+		if (lTemp == aOther) {
+			return true;
+		}
+	} while ((lTemp = lTemp->findParent()) != nullptr);
+	return false;
 }
 
 /*

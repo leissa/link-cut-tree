@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <ctime>
 #include "LctUtils.h"
 #include "LctNode.h"
 #include "OpTreeNode.h"
@@ -57,6 +58,11 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 			});
 		std::cout << (aRes ? aRes->getID() : -1) << std::endl;
 		return true;
+	}
+	else if(aCmd.compare("isDesc") == 0) {
+		std::cin >> lX;
+		std::cin >> lY;
+		std::cout << (aLct[lX]->isDescendant(aLct[lY]) ? "true" : "false") << std::endl;
 	}
 	else {
 		return true;
@@ -155,7 +161,7 @@ int main()
 	srand(time(nullptr));
 	int lArg;
 	while (true) {
-		std::cout << "1 - LctNode type nodes\n2 - OpTreeNode type nodes" << std::endl;
+		std::cout << "1 - LctNode type nodes\n2 - OpTreeNode type nodes\n3 - benchmark" << std::endl;
 		std::cin >> lArg;
 		if (std::cin.fail()) {
 			std::cin.clear();
@@ -170,6 +176,8 @@ int main()
 			case 2:
 				std::cout << std::endl;
 				loopOpTree();
+				break;
+			case 3:
 				break;
 			}
 		}

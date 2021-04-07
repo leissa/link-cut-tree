@@ -4,6 +4,7 @@
 #include <vector>
 #include <random>
 #include <map>
+#include <ctime>
 #include "cstdint"
 #include "LctNode.h"
 #include "LinkCutTree.h"
