@@ -9,6 +9,7 @@
 #include "LctNode.h"
 #include "LinkCutTree.h"
 #include "OpTreeNode.h"
+#include "IntWrapper.h"
 
 class LctUtils {
 public:
@@ -44,14 +45,14 @@ public:
 		return ((j + 1) * nCk(2 * n - i + 1, (2 * n - i + j) / 2 + 1)) / (2 * n - i + 1);
 	}
 
-	static LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, std::vector<LctNode<int>*>* aNodes = nullptr, uint64_t aSeed = -1) {
+	static LinkCutTree<IntWrapper, OpTreeNode> createRandomJoinTree(int aInnerNodes, std::vector<LctNode<IntWrapper>*>* aNodes = nullptr, uint64_t aSeed = -1) {
 		uint64_t lCatalan = ballot(0, 0, aInnerNodes);
 		if (aSeed == -1) {
 			aSeed = (((uint64_t)rand() << 32) | rand()) % lCatalan;
 		}
 		std::cout << aSeed << " / " << lCatalan << std::endl;
-		LinkCutTree<int, OpTreeNode> lLCT;
-		OpTreeNode<int>* lCurrent = lLCT.createTree(1, 1);
+		LinkCutTree<IntWrapper, OpTreeNode> lLCT;
+		OpTreeNode<IntWrapper>* lCurrent = lLCT.createTree(1, 1);
 		bool lLeft = true;
 		int lNoParOpen = 1;
 		int lNoParClose = 0;
@@ -65,7 +66,7 @@ public:
 				lNoParClose++;
 				if (!lLeft) {
 					lCurrent = lCurrent->findParent(); // can not be null
-					while (lCurrent->getFlag(OpTreeNode<int>::HAS_RIGHT_CHILD)) {
+					while (lCurrent->getFlag(OpTreeNode<IntWrapper>::HAS_RIGHT_CHILD)) {
 						lCurrent = lCurrent->findParent();
 					}
 				}
@@ -93,10 +94,10 @@ public:
 		return lLCT;
 	}
 
-	static LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<LctNode<int>*>* aNodes = nullptr) {
+	static LinkCutTree<IntWrapper> createRandomLCT(int aNodeCount, std::vector<LctNode<IntWrapper>*>* aNodes = nullptr) {
 		srand(time(nullptr));
 		aNodes->clear();
-		LinkCutTree<int> aLCT;
+		LinkCutTree<IntWrapper> aLCT;
 		aLCT.createTree(0, 0);
 		for (int i = 1; i < aNodeCount; i++) {
 			if (aNodes) {
@@ -110,21 +111,21 @@ public:
 		return aLCT;
 	}
 
-	static void updateBackpointers(std::vector<LctNode<int>*>& aNodes,
-		std::map<LctNode<int>*, std::vector<LctNode<int>*>>& aBackpointers)
+	static void updateBackpointers(std::vector<LctNode<IntWrapper>*>& aNodes,
+		std::map<LctNode<IntWrapper>*, std::vector<LctNode<IntWrapper>*>>& aBackpointers)
 	{
 		aBackpointers.clear();
 		for (int i = 0; i < aNodes.size(); i++) {
 			if (aNodes[i]->_isRoot && aNodes[i]->_parent) {
 				if (aBackpointers.count(aNodes[i]->_parent) == 0) {
-					aBackpointers[aNodes[i]->_parent] = std::vector<LctNode<int>*>();
+					aBackpointers[aNodes[i]->_parent] = std::vector<LctNode<IntWrapper>*>();
 				}
 				aBackpointers[aNodes[i]->_parent].push_back(aNodes[i]);
 			}
 		}
 	}
 
-	static void deleteNodes(std::vector<LctNode<int>*>* v) {
+	static void deleteNodes(std::vector<LctNode<IntWrapper>*>* v) {
 		for (int i = 0; i < v->size(); i++) {
 			delete v->at(i);
 		}

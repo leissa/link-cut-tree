@@ -1,6 +1,12 @@
 #ifndef LINK_CUT_TREE_NODE_H
 #define LINK_CUT_TREE_NODE_H
 
+/**
+* type T must implement methods
+*	void update_aggregate(IntWrapper* aLeft, IntWrapper* aRight)
+*	void update_aggregate_expose(IntWrapper* aNewChild, IntWrapper* aFormerChild)
+*	void update_aggregate_link(IntWrapper* aNewChild)
+*/
 template<typename T> class LctNode {
 public:
 	LctNode();
@@ -49,14 +55,21 @@ template<typename T> int LctNode<T>::getID() {
 template<typename T> void LctNode<T>::expose() {
 	splay();
 	if (_right) {
+		_content.update_aggregate_expose(nullptr, &(_right->_content));
+		_content.update_aggregate(_left ? &(_left->_content) : nullptr, nullptr);
 		_right->_isRoot = true;
 		_right = nullptr;
+	}
+	else {
+		_content.update_aggregate(_left ? &(_left->_content) : nullptr, nullptr);
 	}
 	while (_parent) {
 		_parent->splay();
 		if (_parent->_right) {
 			_parent->_right->_isRoot = true;
 		}
+		_parent->_content.update_aggregate_expose(&(this->_content), _parent->_right ? &(_parent->_right->_content) : nullptr);
+		_parent->_content.update_aggregate(_parent->_left ? &(_parent->_left->_content) : nullptr, &(this->_content));
 		_parent->_right = this;
 		_isRoot = false;
 		splay(); // single rotation around parent giving v the next path-parent pointer
@@ -189,9 +202,9 @@ template<typename T> bool LctNode<T>::link(LctNode<T>* aOther) {
 		return false; // v is not the root of its represented tree
 	}
 	aOther->expose();
-	_left = aOther;
-	aOther->_parent = this;
-	aOther->_isRoot = false;
+	_parent = aOther;
+	aOther->_content.update_aggregate_link(&(this->_content));
+	aOther->_content.update_aggregate(aOther->_left ? &(aOther->_left->_content) : nullptr, aOther->_right ? &(aOther->_right->_content) : nullptr);
 	return true;
 }
 
@@ -203,10 +216,10 @@ template<typename T> bool LctNode<T>::link(LctNode<T>* aOther) {
 template<typename T> void LctNode<T>::cut() {
 	expose();
 	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
-		LctNode* lParent = findParent();
 		_left->_isRoot = true;
 		_left->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
+		_content.update_aggregate(nullptr, _right ? &(_right->_content) : nullptr);
 	}
 }
 
@@ -245,6 +258,8 @@ template<typename T> void LctNode<T>::rotR() {
 		_isRoot = false;
 		_parent->_isRoot = true;
 	}
+	_content.update_aggregate(_left ? &(_left->_content) : nullptr, _right ? &(_right->_content) : nullptr);
+	_parent->_content.update_aggregate(_parent->_left ? &(_parent->_left->_content) : nullptr, _parent->_right ? &(_parent->_right->_content) : nullptr);
 }
 
 /**
@@ -282,6 +297,8 @@ template<typename T> void LctNode<T>::rotL() {
 		_isRoot = false;
 		_parent->_isRoot = true;
 	}
+	_content.update_aggregate(_left ? &(_left->_content) : nullptr, _right ? &(_right->_content) : nullptr);
+	_parent->_content.update_aggregate(_parent->_left ? &(_parent->_left->_content) : nullptr, _parent->_right ? &(_parent->_right->_content) : nullptr);
 }
 
 /**
