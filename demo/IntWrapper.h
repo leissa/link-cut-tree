@@ -33,8 +33,8 @@ void IntWrapper::update_aggregate_expose(IntWrapper* aNewChild, IntWrapper* aFor
 	}
 }
 
-void IntWrapper::update_aggregate_link(IntWrapper* newChild) {
-	_sizeVirtual += newChild->_sizeSubtree;
+void IntWrapper::update_aggregate_link(IntWrapper* aNewChild) {
+	_sizeVirtual += aNewChild->_sizeSubtree;
 }
 
 inline bool IntWrapper::operator<(const IntWrapper& aOther) const noexcept

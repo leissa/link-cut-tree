@@ -65,9 +65,13 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 		std::cin >> lY;
 		std::cout << (aLct[lX]->isDescendant(aLct[lY]) ? "true" : "false") << std::endl;
 	}
-	else if (aCmd.compare("ss") == 0) {
+	else if (aCmd.compare("vs") == 0) {
 		std::cin >> lX;
-		std::cout << aLct[lX]->getContent().getSubtreeSize() << std::endl;
+		std::cout << aLct[lX]->getVirtualSize() << std::endl;
+	}
+	else if (aCmd.compare("rs") == 0) {
+		std::cin >> lX;
+		std::cout << aLct[lX]->getRealSize() << std::endl;
 	}
 	else {
 		return true;

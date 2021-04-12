@@ -26,6 +26,9 @@ public:
 	template<typename F> void path(F aFunction);
 	template<typename F> LctNode<T>* find_if(F aFunction);
 
+	int getVirtualSize();
+	int getRealSize();
+
 	friend class LctUtils;
 	static int idCounter;
 
@@ -38,13 +41,21 @@ protected:
 	void rotL();
 	void splay();
 	void expose();
+
+	int _sizeVirtual;
+	int _sizeSubtree;
+	// call from inheriting method
+	virtual void update_aggregate(LctNode<T>* aLeft, LctNode<T>* aRight);
+	virtual void update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild);
+	virtual void update_aggregate_link(LctNode<T>* aNewChild);
+
 };
 
 template<typename T> LctNode<T>::LctNode()
-	: _left(nullptr), _right(nullptr), _parent(nullptr), _content(T()), _isRoot(true), _id(idCounter++) {}
+	: _left(nullptr), _right(nullptr), _parent(nullptr), _content(T()), _isRoot(true), _id(idCounter++), _sizeVirtual(0), _sizeSubtree(0) {}
 
 template<typename T> LctNode<T>::LctNode(const T& aContent, int aID) : _left(nullptr), _right(nullptr),
-_parent(nullptr), _content(aContent), _isRoot(true), _id(aID) {}
+_parent(nullptr), _content(aContent), _isRoot(true), _id(aID), _sizeVirtual(0), _sizeSubtree(0) {}
 
 template<typename T> int LctNode<T>::idCounter = 0;
 
@@ -54,22 +65,13 @@ template<typename T> int LctNode<T>::getID() {
 
 template<typename T> void LctNode<T>::expose() {
 	splay();
-	if (_right) {
-		_content.update_aggregate_expose(nullptr, &(_right->_content));
-		_content.update_aggregate(_left ? &(_left->_content) : nullptr, nullptr);
-		_right->_isRoot = true;
-		_right = nullptr;
-	}
-	else {
-		_content.update_aggregate(_left ? &(_left->_content) : nullptr, nullptr);
-	}
+	update_aggregate(_left, _right);
 	while (_parent) {
 		_parent->splay();
 		if (_parent->_right) {
 			_parent->_right->_isRoot = true;
 		}
-		_parent->_content.update_aggregate_expose(&(this->_content), _parent->_right ? &(_parent->_right->_content) : nullptr);
-		_parent->_content.update_aggregate(_parent->_left ? &(_parent->_left->_content) : nullptr, &(this->_content));
+		_parent->update_aggregate_expose(this, _parent->_right);
 		_parent->_right = this;
 		_isRoot = false;
 		splay(); // single rotation around parent giving v the next path-parent pointer
@@ -203,8 +205,8 @@ template<typename T> bool LctNode<T>::link(LctNode<T>* aOther) {
 	}
 	aOther->expose();
 	_parent = aOther;
-	aOther->_content.update_aggregate_link(&(this->_content));
-	aOther->_content.update_aggregate(aOther->_left ? &(aOther->_left->_content) : nullptr, aOther->_right ? &(aOther->_right->_content) : nullptr);
+	aOther->update_aggregate_link(this);
+	aOther->update_aggregate(aOther->_left, aOther->_right);
 	return true;
 }
 
@@ -219,7 +221,7 @@ template<typename T> void LctNode<T>::cut() {
 		_left->_isRoot = true;
 		_left->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
-		_content.update_aggregate(nullptr, _right ? &(_right->_content) : nullptr);
+		update_aggregate(nullptr, _right);
 	}
 }
 
@@ -258,8 +260,8 @@ template<typename T> void LctNode<T>::rotR() {
 		_isRoot = false;
 		_parent->_isRoot = true;
 	}
-	_content.update_aggregate(_left ? &(_left->_content) : nullptr, _right ? &(_right->_content) : nullptr);
-	_parent->_content.update_aggregate(_parent->_left ? &(_parent->_left->_content) : nullptr, _parent->_right ? &(_parent->_right->_content) : nullptr);
+	update_aggregate(_left, _right);
+	_parent->update_aggregate(_parent->_left, _parent->_right);
 }
 
 /**
@@ -297,8 +299,8 @@ template<typename T> void LctNode<T>::rotL() {
 		_isRoot = false;
 		_parent->_isRoot = true;
 	}
-	_content.update_aggregate(_left ? &(_left->_content) : nullptr, _right ? &(_right->_content) : nullptr);
-	_parent->_content.update_aggregate(_parent->_left ? &(_parent->_left->_content) : nullptr, _parent->_right ? &(_parent->_right->_content) : nullptr);
+	update_aggregate(_left, _right);
+	_parent->update_aggregate(_parent->_left, _parent->_right);
 }
 
 /**
@@ -338,6 +340,36 @@ template<typename T> void LctNode<T>::splay() {
 			_parent->rotL();
 		}
 	}
+}
+
+template<typename T> void LctNode<T>::update_aggregate(LctNode<T>* left, LctNode<T>* right) {
+	_sizeSubtree = (left ? left->_sizeSubtree : 0) + (right ? right->_sizeSubtree : 0) + _sizeVirtual + 1;
+}
+
+template<typename T> void LctNode<T>::update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild) {
+	if (aNewChild) {
+		_sizeVirtual -= aNewChild->_sizeSubtree;
+	}
+	if (aFormerChild) {
+		_sizeVirtual += aFormerChild->_sizeSubtree;
+	}
+}
+
+template<typename T> void LctNode<T>::update_aggregate_link(LctNode<T>* aNewChild) {
+	_sizeVirtual += aNewChild->_sizeSubtree;
+}
+
+// return the size of the subtree of the virtual tree rooted at this
+template<typename T> int LctNode<T>::getVirtualSize() // no expose necessary because invariant does not depend on info higher up in the virtual tree
+{
+	return _sizeSubtree;
+}
+
+// return size of the subtree of the represented tree rooted at this
+template<typename T> int LctNode<T>::getRealSize()
+{
+	expose(); // needs expose because possible right subtrees of ancestors contain nodes that are descendants of this
+	return (_right ? _right->_sizeSubtree : 0) + _sizeVirtual + 1;
 }
 
 template<typename T> const T& LctNode<T>::getContent() const {
