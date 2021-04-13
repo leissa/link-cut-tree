@@ -36,11 +36,11 @@ protected:
 	LctNode* _left, * _right, * _parent;
 	T _content;
 	int _id;
-	bool _isRoot;
 	void rotR();
 	void rotL();
 	void splay();
 	void expose();
+	bool isRoot();
 
 	int _sizeVirtual;
 	int _sizeSubtree;
@@ -52,10 +52,10 @@ protected:
 };
 
 template<typename T> LctNode<T>::LctNode()
-	: _left(nullptr), _right(nullptr), _parent(nullptr), _content(T()), _isRoot(true), _id(idCounter++), _sizeVirtual(0), _sizeSubtree(0) {}
+	: _left(nullptr), _right(nullptr), _parent(nullptr), _content(T()), _id(idCounter++), _sizeVirtual(0), _sizeSubtree(0) {}
 
 template<typename T> LctNode<T>::LctNode(const T& aContent, int aID) : _left(nullptr), _right(nullptr),
-_parent(nullptr), _content(aContent), _isRoot(true), _id(aID), _sizeVirtual(0), _sizeSubtree(0) {}
+_parent(nullptr), _content(aContent), _id(aID), _sizeVirtual(0), _sizeSubtree(0) {}
 
 template<typename T> int LctNode<T>::idCounter = 0;
 
@@ -68,12 +68,8 @@ template<typename T> void LctNode<T>::expose() {
 	update_aggregate(_left, _right);
 	while (_parent) {
 		_parent->splay();
-		if (_parent->_right) {
-			_parent->_right->_isRoot = true;
-		}
 		_parent->update_aggregate_expose(this, _parent->_right);
 		_parent->_right = this;
-		_isRoot = false;
 		splay(); // single rotation around parent giving v the next path-parent pointer
 	}
 }
@@ -100,7 +96,7 @@ template<typename T> LctNode<T>* LctNode<T>::findParent() {
 	else { // parent is either on path from this to root (of aux) or the parent of root (which can be null)
 		if (_parent) {
 			while (true) {
-				if (lTemp->_isRoot) {
+				if (lTemp->isRoot()) {
 					return lTemp->_parent;
 				}
 				else {
@@ -141,10 +137,15 @@ template<typename T> LctNode<T>* LctNode<T>::lowestCommonAncestor(LctNode* aOthe
 		this->expose();
 		aOther->expose();
 		LctNode* lLca = this;
-		while (!lLca->_isRoot) {
+		while (!lLca->isRoot()) {
 			lLca = lLca->_parent;
 		}
-		return lLca->_parent;
+		if (lLca == aOther) { // this and aOther were on the same preferred path and aOther is an ancestor of this
+			return aOther;
+		}
+		else {
+			return lLca->_parent;
+		}
 	}
 }
 
@@ -210,6 +211,10 @@ template<typename T> bool LctNode<T>::link(LctNode<T>* aOther) {
 	return true;
 }
 
+template<typename T> bool LctNode<T>::isRoot() {
+	return !_parent || (_parent->_left != this && _parent->_right != this);
+}
+
 /*
 * Remove the subtree of the represented tree that has this node as its root,
 * creating a new represented tree. If this is already the root of the represented
@@ -218,7 +223,6 @@ template<typename T> bool LctNode<T>::link(LctNode<T>* aOther) {
 template<typename T> void LctNode<T>::cut() {
 	expose();
 	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
-		_left->_isRoot = true;
 		_left->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
 		update_aggregate(nullptr, _right);
@@ -256,10 +260,6 @@ template<typename T> void LctNode<T>::rotR() {
 		_left = nullptr;
 	}
 	_parent->_right = this;
-	if (_isRoot) {
-		_isRoot = false;
-		_parent->_isRoot = true;
-	}
 	update_aggregate(_left, _right);
 	_parent->update_aggregate(_parent->_left, _parent->_right);
 }
@@ -295,10 +295,6 @@ template<typename T> void LctNode<T>::rotL() {
 		_right = nullptr;
 	}
 	_parent->_left = this;
-	if (_isRoot) {
-		_isRoot = false;
-		_parent->_isRoot = true;
-	}
 	update_aggregate(_left, _right);
 	_parent->update_aggregate(_parent->_left, _parent->_right);
 }
@@ -309,9 +305,9 @@ template<typename T> void LctNode<T>::rotL() {
 * this, the parent of this and the grandparent of this
 */
 template<typename T> void LctNode<T>::splay() {
-	while (!_isRoot) {
+	while (!isRoot()) {
 		// zig
-		if (_parent->_isRoot) {
+		if (_parent->isRoot()) {
 			if (_parent->_left == this) {
 				_parent->rotR();
 			}

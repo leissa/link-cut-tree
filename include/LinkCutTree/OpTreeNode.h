@@ -52,7 +52,6 @@ template<typename T> void OpTreeNode<T>::cut() {
 			lParent->setFlag(HAS_ONLY_CHILD, 0);
 			this->setFlag(IS_ONLY_CHILD, 0);
 		}
-		dynamic_cast<OpTreeNode<T>*>(_left)->_isRoot = true;
 		dynamic_cast<OpTreeNode<T>*>(_left)->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
 		_content.update_aggregate(nullptr, _right ? &(_right->getContent()) : nullptr);

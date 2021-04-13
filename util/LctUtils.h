@@ -116,7 +116,7 @@ public:
 	{
 		aBackpointers.clear();
 		for (int i = 0; i < aNodes.size(); i++) {
-			if (aNodes[i]->_isRoot && aNodes[i]->_parent) {
+			if (aNodes[i]->isRoot() && aNodes[i]->_parent) {
 				if (aBackpointers.count(aNodes[i]->_parent) == 0) {
 					aBackpointers[aNodes[i]->_parent] = std::vector<LctNode<IntWrapper>*>();
 				}
@@ -134,7 +134,7 @@ public:
 	template<typename T> static void printSplayTreeRecursive(const std::string& aPrefix, LctNode<T>* aNode,
 		bool aLeft, std::map<LctNode<T>*, std::vector<LctNode<T>*>>* aBackpointers)
 	{
-		std::cout << aPrefix << (aLeft ? "|--" : "|--") << aNode->getID() << (aNode->_isRoot ? "r" : "");
+		std::cout << aPrefix << (aLeft ? "|--" : "|--") << aNode->getID() << (aNode->isRoot() ? "r" : "");
 		if (aNode->_parent) {
 			std::cout << "(" << aNode->_parent->getID() << ")";
 		}
@@ -156,7 +156,7 @@ public:
 	template<typename T> static void printSplayTree(LctNode<T>* aNode,
 		std::map<LctNode<T>*, std::vector<LctNode<T>*>>* aBackpointers)
 	{
-		while (!aNode->_isRoot) {
+		while (!aNode->isRoot()) {
 			aNode = aNode->_parent;
 		}
 		printSplayTreeRecursive("", aNode, false, aBackpointers);
