@@ -120,31 +120,29 @@ template<typename T> LctNode<T>* LctNode<T>::findParent() {
 * If this and other are not on the same represented tree nullptr is returned.
 */
 template<typename T> LctNode<T>* LctNode<T>::lowestCommonAncestor(LctNode* aOther) {
-	if (aOther->isDescendant(this)) { // also checks for equality
+	if (this == aOther) {
 		return this;
 	}
-	LctNode* lRoot = this->findRoot();
-	if (lRoot != aOther->findRoot()) {
+	else if (findRoot() != aOther->findRoot()) {
 		return nullptr;
-	}
-	else if (lRoot == this) {
-		return this;
-	}
-	else if (lRoot == aOther) {
-		return aOther;
 	}
 	else {
 		this->expose();
 		aOther->expose();
-		LctNode* lLca = this;
-		while (!lLca->isRoot()) {
-			lLca = lLca->_parent;
+		if (isRoot()) { // zig has been performed before slice, also this cant be root if on same splay as aOther
+			return _parent;
 		}
-		if (lLca == aOther) { // this and aOther were on the same preferred path and aOther is an ancestor of this
-			return aOther;
+		else if (_parent->isRoot() && _parent->_parent != nullptr) { // zig-zig has been performed
+			return _parent->_parent;
 		}
 		else {
-			return lLca->_parent;
+			// this must be on same splay tree as aOther and has depth of 1 or 2 (depending on zig or zig-zig)
+			if (_parent->_left == this) { // same test for zig and zig-zig, if true, this is in left subtree of aOther
+				return this;
+			}
+			else { // this is in right subtree of aOther
+				return aOther;
+			}
 		}
 	}
 }
