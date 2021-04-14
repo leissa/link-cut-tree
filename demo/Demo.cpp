@@ -73,6 +73,10 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 		std::cin >> lX;
 		std::cout << aLct[lX]->getRealSize() << std::endl;
 	}
+	else if (aCmd.compare("ltr") == 0) {
+		std::cin >> lX;
+		std::cout << aLct[lX]->lengthToRoot() << std::endl;
+	}
 	else {
 		return true;
 	}

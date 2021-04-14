@@ -28,6 +28,7 @@ public:
 
 	int getVirtualSize();
 	int getRealSize();
+	int lengthToRoot();
 
 	friend class LctUtils;
 	static int idCounter;
@@ -44,6 +45,7 @@ protected:
 
 	int _sizeVirtual;
 	int _sizeSubtree;
+	int _sumVirtual;
 	// call from inheriting method
 	virtual void update_aggregate(LctNode<T>* aLeft, LctNode<T>* aRight);
 	virtual void update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild);
@@ -52,10 +54,10 @@ protected:
 };
 
 template<typename T> LctNode<T>::LctNode()
-	: _left(nullptr), _right(nullptr), _parent(nullptr), _content(T()), _id(idCounter++), _sizeVirtual(0), _sizeSubtree(0) {}
+	: _left(nullptr), _right(nullptr), _parent(nullptr), _content(T()), _id(idCounter++), _sizeVirtual(0), _sizeSubtree(1), _sumVirtual(0) {}
 
 template<typename T> LctNode<T>::LctNode(const T& aContent, int aID) : _left(nullptr), _right(nullptr),
-_parent(nullptr), _content(aContent), _id(aID), _sizeVirtual(0), _sizeSubtree(0) {}
+_parent(nullptr), _content(aContent), _id(aID), _sizeVirtual(0), _sizeSubtree(1), _sumVirtual(0) {}
 
 template<typename T> int LctNode<T>::idCounter = 0;
 
@@ -65,7 +67,6 @@ template<typename T> int LctNode<T>::getID() {
 
 template<typename T> void LctNode<T>::expose() {
 	splay();
-	update_aggregate(_left, _right);
 	while (_parent) {
 		_parent->splay();
 		_parent->update_aggregate_expose(this, _parent->_right);
@@ -129,15 +130,15 @@ template<typename T> LctNode<T>* LctNode<T>::lowestCommonAncestor(LctNode* aOthe
 	else {
 		this->expose();
 		aOther->expose();
-		if (isRoot()) { // zig has been performed before slice, also this cant be root if on same splay as aOther
+		if (isRoot()) { // zig or zig-zag has been performed before slice, also this cant be root if on same splay as aOther
 			return _parent;
 		}
 		else if (_parent->isRoot() && _parent->_parent != nullptr) { // zig-zig has been performed
 			return _parent->_parent;
 		}
 		else {
-			// this must be on same splay tree as aOther and has depth of 1 or 2 (depending on zig or zig-zig)
-			if (_parent->_left == this) { // same test for zig and zig-zig, if true, this is in left subtree of aOther
+			// this must be on same splay tree as aOther and has depth of 1 or 2 (depending on zig/zig-zag or zig-zig)
+			if (_parent->_left == this) { // same test for zig/zig-zag and zig-zig, if true, this is in left subtree of aOther
 				return this;
 			}
 			else { // this is in right subtree of aOther
@@ -182,13 +183,22 @@ template<typename T> template<typename F> LctNode<T>* LctNode<T>::find_if(F aFun
 * If this equals aOther true is returned.
 */
 template<typename T> bool LctNode<T>::isDescendant(LctNode<T>* aOther) {
-	LctNode* lTemp = this;
-	do {
-		if (lTemp == aOther) {
+	expose();
+	aOther->expose();
+	if (isRoot() || (_parent->isRoot() && _parent->_parent != nullptr)) {
+		// this is not on preferred path with root -> node in left subtree of this has been exposed when aOther was exposed
+		// this only happens if this and aOther have an lca that is not this -> aOther is not a descendant
+		return false;
+	}
+	else { // this and aOther are on same preferred path -> test if this is higher or lower than aOther
+		// -> same as checking if this has been rotated into the left or right subtree of aOther
+		if (_parent->_left == this) { // this is in the left subtree of aOther -> higher in the tree -> not a descendant
+			return false;
+		}
+		else {
 			return true;
 		}
-	} while ((lTemp = lTemp->findParent()) != nullptr);
-	return false;
+	}
 }
 
 /*
@@ -338,19 +348,23 @@ template<typename T> void LctNode<T>::splay() {
 
 template<typename T> void LctNode<T>::update_aggregate(LctNode<T>* left, LctNode<T>* right) {
 	_sizeSubtree = (left ? left->_sizeSubtree : 0) + (right ? right->_sizeSubtree : 0) + _sizeVirtual + 1;
+	_sumVirtual = (left ? left->_sumVirtual : 0) + (right ? right->_sumVirtual : 0) + _sizeVirtual;
 }
 
 template<typename T> void LctNode<T>::update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild) {
 	if (aNewChild) {
 		_sizeVirtual -= aNewChild->_sizeSubtree;
+		_sumVirtual -= aNewChild->_sizeSubtree;
 	}
 	if (aFormerChild) {
 		_sizeVirtual += aFormerChild->_sizeSubtree;
+		_sumVirtual += aFormerChild->_sizeSubtree;
 	}
 }
 
 template<typename T> void LctNode<T>::update_aggregate_link(LctNode<T>* aNewChild) {
 	_sizeVirtual += aNewChild->_sizeSubtree;
+	_sumVirtual += aNewChild->_sizeSubtree;
 }
 
 // return the size of the subtree of the virtual tree rooted at this
@@ -364,6 +378,11 @@ template<typename T> int LctNode<T>::getRealSize()
 {
 	expose(); // needs expose because possible right subtrees of ancestors contain nodes that are descendants of this
 	return (_right ? _right->_sizeSubtree : 0) + _sizeVirtual + 1;
+}
+
+template<typename T> int LctNode<T>::lengthToRoot() {
+	expose();
+	return _left ? (_left->_sizeSubtree - _left->_sumVirtual) : 0;
 }
 
 template<typename T> const T& LctNode<T>::getContent() const {
