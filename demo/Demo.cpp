@@ -5,9 +5,8 @@
 #include "LctNode.h"
 #include "OpTreeNode.h"
 #include "LinkCutTree.h"
-#include "IntWrapper.h"
 
-template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<IntWrapper>*>& aNodes, std::map<LctNode<IntWrapper>*, std::vector<LctNode<IntWrapper>*>>& aBackpointers) {
+template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<int>*>& aNodes, std::map<LctNode<int>*, std::vector<LctNode<int>*>>& aBackpointers) {
 	int lX, lY;
 	std::cin >> aCmd;
 	if (aCmd.compare("repr") == 0) {
@@ -41,7 +40,7 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 	}
 	else if (aCmd.compare("printPath") == 0) {
 		std::cin >> lX;
-		aLct[lX]->path([](LctNode<IntWrapper>* aNode)
+		aLct[lX]->path([](LctNode<int>* aNode)
 			{
 				std::cout << aNode->getID() << std::endl;
 			});
@@ -49,7 +48,7 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 	else if (aCmd.compare("find") == 0) {
 		std::cin >> lX;
 		std::cin >> lY;
-		LctNode<IntWrapper>* aRes = aLct[lX]->find_if([lY](LctNode<IntWrapper>* aNode) {
+		LctNode<int>* aRes = aLct[lX]->find_if([lY](LctNode<int>* aNode) {
 			if (aNode->getID() == lY) {
 				return true;
 			}
@@ -58,7 +57,6 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 			}
 			});
 		std::cout << (aRes ? aRes->getID() : -1) << std::endl;
-		return true;
 	}
 	else if(aCmd.compare("isDesc") == 0) {
 		std::cin >> lX;
@@ -84,9 +82,9 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 }
 
 void loopDefault() {
-	LinkCutTree<IntWrapper> lLct;
-	std::vector<LctNode<IntWrapper>*> lNodes;
-	std::map<LctNode<IntWrapper>*, std::vector<LctNode<IntWrapper>*>> lBackpointers;
+	LinkCutTree<int> lLct;
+	std::vector<LctNode<int>*> lNodes;
+	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
 	lLct = LctUtils::createRandomLCT(25, &lNodes);
 	LctUtils::updateBackpointers(lNodes, lBackpointers);
 	LctUtils::printReprTree(lLct[0], &lBackpointers);
@@ -114,9 +112,9 @@ void loopDefault() {
 }
 
 void loopOpTree() {
-	LinkCutTree<IntWrapper, OpTreeNode> lLct;
-	std::vector<LctNode<IntWrapper>*> lNodes;
-	std::map<LctNode<IntWrapper>*, std::vector<LctNode<IntWrapper>*>> lBackpointers;
+	LinkCutTree<int, OpTreeNode> lLct;
+	std::vector<LctNode<int>*> lNodes;
+	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
 	std::string lCmd;
 	lLct = LctUtils::createRandomJoinTree(25, &lNodes);
 	LctUtils::updateBackpointers(lNodes, lBackpointers);
@@ -142,7 +140,7 @@ void loopOpTree() {
 			else if (lCmd.compare("info") == 0) {
 				std::cin >> lX;
 				for (int i = 0; i < 6; i++) {
-					std::cout << lLct[lX]->getFlag(static_cast<OpTreeNode<IntWrapper>::flagType>(5 - i));
+					std::cout << lLct[lX]->getFlag(static_cast<OpTreeNode<int>::flagType>(5 - i));
 				}
 				std::cout << std::endl;
 			}
@@ -163,7 +161,7 @@ void loopOpTree() {
 			}
 			else if (lCmd.compare("flat") == 0) {
 				std::cin >> lX;
-				lLct = LinkCutTree<IntWrapper, OpTreeNode>();
+				lLct = LinkCutTree<int, OpTreeNode>();
 				lNodes.clear();
 				for (int i = 0; i < lX; i++) {
 					lNodes.push_back(lLct.createTree(i, i));

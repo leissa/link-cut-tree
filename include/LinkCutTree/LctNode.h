@@ -1,12 +1,6 @@
 #ifndef LINK_CUT_TREE_NODE_H
 #define LINK_CUT_TREE_NODE_H
 
-/**
-* type T must implement methods
-*	void update_aggregate(IntWrapper* aLeft, IntWrapper* aRight)
-*	void update_aggregate_expose(IntWrapper* aNewChild, IntWrapper* aFormerChild)
-*	void update_aggregate_link(IntWrapper* aNewChild)
-*/
 template<typename T> class LctNode {
 public:
 	LctNode();
