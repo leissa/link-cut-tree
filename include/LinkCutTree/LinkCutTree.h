@@ -21,13 +21,13 @@ template<typename V, template<typename> class T> T<V>* LinkCutTree<V, T>::create
 	if (!this->_nodes.count(aContent)) {
 		_nodes.insert(std::make_pair(aContent, T<V>(aContent, aID)));
 	}
-	return &(this->_nodes[aContent]);
+	return &(this->_nodes.find(aContent)->second);
 }
 
 template<typename V, template<typename> class T> T<V>* LinkCutTree<V, T>::operator[](const V& aContent)
 {
 	if (this->_nodes.count(aContent)) {
-		return &(this->_nodes[aContent]);
+		return &(this->_nodes.find(aContent)->second);
 	}
 	else {
 		return nullptr;

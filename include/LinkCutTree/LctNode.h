@@ -3,7 +3,6 @@
 
 template<typename T> class LctNode {
 public:
-	LctNode();
 	LctNode(const T& aContent, int aID = idCounter++);
 
 	const T& getContent() const;
@@ -40,15 +39,12 @@ protected:
 	int _sizeVirtual;
 	int _sizeSubtree;
 	int _sumVirtual;
+
 	// call from inheriting method
 	virtual void update_aggregate(LctNode<T>* aLeft, LctNode<T>* aRight);
 	virtual void update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild);
 	virtual void update_aggregate_link(LctNode<T>* aNewChild);
-
 };
-
-template<typename T> LctNode<T>::LctNode()
-	: _left(nullptr), _right(nullptr), _parent(nullptr), _content(T()), _id(idCounter++), _sizeVirtual(0), _sizeSubtree(1), _sumVirtual(0) {}
 
 template<typename T> LctNode<T>::LctNode(const T& aContent, int aID) : _left(nullptr), _right(nullptr),
 _parent(nullptr), _content(aContent), _id(aID), _sizeVirtual(0), _sizeSubtree(1), _sumVirtual(0) {}
