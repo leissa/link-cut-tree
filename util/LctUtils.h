@@ -52,6 +52,9 @@ public:
 		std::cout << aSeed << " / " << lCatalan << std::endl;
 		LinkCutTree<int, OpTreeNode> lLCT;
 		OpTreeNode<int>* lCurrent = lLCT.createTree(1, 1);
+		if (aNodes) {
+			aNodes->push_back(lCurrent);
+		}
 		bool lLeft = true;
 		int lNoParOpen = 1;
 		int lNoParClose = 0;

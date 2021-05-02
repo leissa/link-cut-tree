@@ -13,15 +13,16 @@ public:
 	virtual void cut();
 
 	virtual LctNode* findRoot();
-	virtual LctNode* findParent();
 	virtual LctNode* lowestCommonAncestor(LctNode* aOther);
 	virtual bool isDescendant(LctNode* aOther);
-	template<typename F> void path(F aFunction);
-	template<typename F> LctNode<T>* find_if(F aFunction);
 
 	int getVirtualSize();
 	int getRealSize();
-	int lengthToRoot();
+	int getLengthToRoot();
+
+	virtual LctNode* findParent();
+	template<typename F> void path(F aFunction);
+	template<typename F> LctNode<T>* find_if(F aFunction);
 
 	friend class LctUtils;
 	static int idCounter;
@@ -36,18 +37,17 @@ protected:
 	void expose();
 	bool isRoot();
 
-	int _sizeVirtual;
+	int _sizeDashedChildren;
 	int _sizeSubtree;
-	int _sumVirtual;
+	int _sizeDashedAncestors;
 
 	// call from inheriting method
-	virtual void update_aggregate(LctNode<T>* aLeft, LctNode<T>* aRight);
+	virtual void update_aggregate();
 	virtual void update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild);
 	virtual void update_aggregate_link(LctNode<T>* aNewChild);
 };
-
 template<typename T> LctNode<T>::LctNode(const T& aContent, int aID) : _left(nullptr), _right(nullptr),
-_parent(nullptr), _content(aContent), _id(aID), _sizeVirtual(0), _sizeSubtree(1), _sumVirtual(0) {}
+_parent(nullptr), _content(aContent), _id(aID), _sizeDashedChildren(0), _sizeSubtree(1), _sizeDashedAncestors(0) {}
 
 template<typename T> int LctNode<T>::idCounter = 0;
 
@@ -205,7 +205,6 @@ template<typename T> bool LctNode<T>::link(LctNode<T>* aOther) {
 	aOther->expose();
 	_parent = aOther;
 	aOther->update_aggregate_link(this);
-	aOther->update_aggregate(aOther->_left, aOther->_right);
 	return true;
 }
 
@@ -223,7 +222,7 @@ template<typename T> void LctNode<T>::cut() {
 	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
 		_left->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
-		update_aggregate(nullptr, _right);
+		update_aggregate();
 	}
 }
 
@@ -258,8 +257,8 @@ template<typename T> void LctNode<T>::rotR() {
 		_left = nullptr;
 	}
 	_parent->_right = this;
-	update_aggregate(_left, _right);
-	_parent->update_aggregate(_parent->_left, _parent->_right);
+	update_aggregate();
+	_parent->update_aggregate();
 }
 
 /**
@@ -293,8 +292,8 @@ template<typename T> void LctNode<T>::rotL() {
 		_right = nullptr;
 	}
 	_parent->_left = this;
-	update_aggregate(_left, _right);
-	_parent->update_aggregate(_parent->_left, _parent->_right);
+	update_aggregate();
+	_parent->update_aggregate();
 }
 
 /**
@@ -336,25 +335,23 @@ template<typename T> void LctNode<T>::splay() {
 	}
 }
 
-template<typename T> void LctNode<T>::update_aggregate(LctNode<T>* left, LctNode<T>* right) {
-	_sizeSubtree = (left ? left->_sizeSubtree : 0) + (right ? right->_sizeSubtree : 0) + _sizeVirtual + 1;
-	_sumVirtual = (left ? left->_sumVirtual : 0) + (right ? right->_sumVirtual : 0) + _sizeVirtual;
+template<typename T> void LctNode<T>::update_aggregate() {
+	_sizeSubtree = (_left ? _left->_sizeSubtree : 0) + (_right ? _right->_sizeSubtree : 0) + _sizeDashedChildren + 1;
+	_sizeDashedAncestors = (_left ? _left->_sizeDashedAncestors : 0) + (_right ? _right->_sizeDashedAncestors : 0) + _sizeDashedChildren;
 }
 
 template<typename T> void LctNode<T>::update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild) {
-	if (aNewChild) {
-		_sizeVirtual -= aNewChild->_sizeSubtree;
-		_sumVirtual -= aNewChild->_sizeSubtree;
-	}
+	_sizeDashedChildren -= aNewChild->_sizeSubtree;
+	_sizeDashedAncestors -= aNewChild->_sizeSubtree;
 	if (aFormerChild) {
-		_sizeVirtual += aFormerChild->_sizeSubtree;
-		_sumVirtual += aFormerChild->_sizeSubtree;
+		_sizeDashedChildren += aFormerChild->_sizeSubtree;
+		_sizeDashedAncestors += aFormerChild->_sizeSubtree;
 	}
 }
 
 template<typename T> void LctNode<T>::update_aggregate_link(LctNode<T>* aNewChild) {
-	_sizeVirtual += aNewChild->_sizeSubtree;
-	_sumVirtual += aNewChild->_sizeSubtree;
+	_sizeDashedChildren += aNewChild->_sizeSubtree;
+	update_aggregate();
 }
 
 // return the size of the subtree of the virtual tree rooted at this
@@ -367,12 +364,12 @@ template<typename T> int LctNode<T>::getVirtualSize() // no expose necessary bec
 template<typename T> int LctNode<T>::getRealSize()
 {
 	expose(); // needs expose because possible right subtrees of ancestors contain nodes that are descendants of this
-	return (_right ? _right->_sizeSubtree : 0) + _sizeVirtual + 1;
+	return (_right ? _right->_sizeSubtree : 0) + _sizeDashedChildren + 1;
 }
 
-template<typename T> int LctNode<T>::lengthToRoot() {
+template<typename T> int LctNode<T>::getLengthToRoot() {
 	expose();
-	return _left ? (_left->_sizeSubtree - _left->_sumVirtual) : 0;
+	return _left ? (_left->_sizeSubtree - _left->_sizeDashedAncestors) : 0;
 }
 
 template<typename T> const T& LctNode<T>::getContent() const {
