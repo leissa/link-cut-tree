@@ -137,13 +137,6 @@ void loopOpTree() {
 				std::cin >> lY;
 				lLct[lX]->linkOnly(lLct[lY]);
 			}
-			else if (lCmd.compare("info") == 0) {
-				std::cin >> lX;
-				for (int i = 0; i < 6; i++) {
-					std::cout << lLct[lX]->getFlag(static_cast<OpTreeNode<int>::flagType>(5 - i));
-				}
-				std::cout << std::endl;
-			}
 			else if (lCmd.compare("randomJoinTree") == 0) {
 				std::cin >> lX; // number of inner nodes
 				lNodes.clear();
@@ -167,6 +160,16 @@ void loopOpTree() {
 					lNodes.push_back(lLct.createTree(i, i));
 				}
 				LctUtils::updateBackpointers(lNodes, lBackpointers);
+			}
+			else if (lCmd.compare("isLeftDesc") == 0) {
+				std::cin >> lX;
+				std::cin >> lY;
+				std::cout << (lLct[lX]->isLeftDescendant(lLct[lY]) ? "true" : "false") << std::endl;
+			}
+			else if (lCmd.compare("isRightDesc") == 0) {
+				std::cin >> lX;
+				std::cin >> lY;
+				std::cout << (lLct[lX]->isRightDescendant(lLct[lY]) ? "true" : "false") << std::endl;
 			}
 			else {
 				std::cout << "invalid command" << std::endl;

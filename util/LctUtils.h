@@ -68,7 +68,7 @@ public:
 				lNoParClose++;
 				if (!lLeft) {
 					lCurrent = lCurrent->findParent(); // can not be null
-					while (lCurrent->getFlag(OpTreeNode<int>::HAS_RIGHT_CHILD)) {
+					while (lCurrent->_flags[OpTreeNode<int>::HAS_RIGHT_CHILD]) {
 						lCurrent = lCurrent->findParent();
 					}
 				}
@@ -186,13 +186,13 @@ public:
 		OpTreeNode<T>* p;
 		p = dynamic_cast<OpTreeNode<T>*>(aNode);
 		if (p != nullptr) {
-			if (p->getFlag(OpTreeNode<T>::IS_LEFT_CHILD)) {
+			if (p->_flags[OpTreeNode<T>::IS_LEFT_CHILD]) {
 				std::cout << " (l)";
 			}
-			else if (p->getFlag(OpTreeNode<T>::IS_RIGHT_CHILD)) {
+			else if (p->_flags[OpTreeNode<T>::IS_RIGHT_CHILD]) {
 				std::cout << " (r)";
 			}
-			else if (p->getFlag(OpTreeNode<T>::IS_ONLY_CHILD)) {
+			else if (p->_flags[OpTreeNode<T>::IS_ONLY_CHILD]) {
 				std::cout << " (o)";
 			}
 		}

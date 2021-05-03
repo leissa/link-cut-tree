@@ -2,7 +2,7 @@
 #define OP_TREE_NODE_H
 
 #include "LctNode.h"
-#include <bitset>
+#include <vector>
 
 template<typename T> class OpTreeNode : public LctNode<T> {
 public:
@@ -11,6 +11,7 @@ public:
 
 	OpTreeNode* findRoot();
 	OpTreeNode* findParent();
+	OpTreeNode* findChild();
 	OpTreeNode* lowestCommonAncestor(LctNode<T>* aOther);
 
 	enum flagType {
@@ -26,81 +27,107 @@ public:
 
 	void cut();
 
+	bool isLeftDescendant(OpTreeNode<T>* aOther);
+	bool isRightDescendant(OpTreeNode<T>* aOther);
+
 	bool linkLeft(OpTreeNode* aOther);
 	bool linkRight(OpTreeNode* aOther);
 	bool linkOnly(OpTreeNode* aOther);
+
+	friend class LctUtils;
 private:
-	std::bitset<6> _flags;
+	std::vector<bool> _flags;
 	using LctNode::link;
 };
 
-template<typename T> OpTreeNode<T>::OpTreeNode(const T& aContent, int aID) : LctNode<T>(aContent, aID), _flags(0) {}
+template<typename T> OpTreeNode<T>::OpTreeNode(const T& aContent, int aID) : LctNode<T>(aContent, aID), _flags(std::vector<bool>(6, false)) {}
 
 template<typename T> void OpTreeNode<T>::cut() {
 	expose();
 	if (_left) { // if v is root of the represented tree it has no left child after expose and cut does nothing
 		OpTreeNode* lParent = findParent();
-		if (lParent->getFlag(HAS_LEFT_CHILD) && getFlag(IS_LEFT_CHILD)) {
-			lParent->setFlag(HAS_LEFT_CHILD, 0);
-			this->setFlag(IS_LEFT_CHILD, 0);
+		if (lParent->_flags[HAS_LEFT_CHILD] && _flags[IS_LEFT_CHILD]) {
+			lParent->_flags[HAS_LEFT_CHILD] = 0;
+			this->_flags[IS_LEFT_CHILD] = 0;
 		}
-		if (lParent->getFlag(HAS_RIGHT_CHILD) && getFlag(IS_RIGHT_CHILD)) {
-			lParent->setFlag(HAS_RIGHT_CHILD, 0);
-			this->setFlag(IS_RIGHT_CHILD, 0);
+		if (lParent->_flags[HAS_RIGHT_CHILD] && _flags[IS_RIGHT_CHILD]) {
+			lParent->_flags[HAS_RIGHT_CHILD] = 0;
+			_flags[IS_RIGHT_CHILD] = 0;
 		}
-		if (lParent->getFlag(HAS_ONLY_CHILD)) {
-			lParent->setFlag(HAS_ONLY_CHILD, 0);
-			this->setFlag(IS_ONLY_CHILD, 0);
+		if (lParent->_flags[HAS_ONLY_CHILD]) {
+			lParent->_flags[HAS_ONLY_CHILD] = 0;
+			this->_flags[IS_ONLY_CHILD] = 0;
 		}
 		dynamic_cast<OpTreeNode<T>*>(_left)->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
+		update_aggregate();
 	}
-}
-
-
-template<typename T> void OpTreeNode<T>::setFlag(flagType aType, bool aValue) {
-	_flags.set(aType, aValue);
-}
-
-template<typename T> bool OpTreeNode<T>::getFlag(flagType aType) {
-	return _flags[aType];
 }
 
 template<typename T> bool OpTreeNode<T>::linkLeft(OpTreeNode<T>* aOther) {
-	if (aOther->getFlag(HAS_ONLY_CHILD) || aOther->getFlag(HAS_LEFT_CHILD) || !link(aOther)) {
+	if (aOther->_flags[HAS_ONLY_CHILD] || aOther->_flags[HAS_LEFT_CHILD] || !link(aOther)) {
 		return false;
 	}
 	else {
-		aOther->setFlag(HAS_LEFT_CHILD);
-		this->setFlag(IS_LEFT_CHILD);
+		aOther->_flags[HAS_LEFT_CHILD] = 1;
+		this->_flags[IS_LEFT_CHILD] = 1;
 		return true;
 	}
 }
 
 template<typename T> bool OpTreeNode<T>::linkRight(OpTreeNode<T>* aOther) {
-	if (aOther->getFlag(HAS_ONLY_CHILD) || aOther->getFlag(HAS_RIGHT_CHILD) || !link(aOther)) {
+	if (aOther->_flags[HAS_ONLY_CHILD] || aOther->_flags[HAS_RIGHT_CHILD] || !link(aOther)) {
 		return false;
 	}
 	else {
-		aOther->setFlag(HAS_RIGHT_CHILD);
-		this->setFlag(IS_RIGHT_CHILD);
+		aOther->_flags[HAS_RIGHT_CHILD] = 1;
+		this->_flags[IS_RIGHT_CHILD] = 1;
 		return true;
 	}
 }
 
 template<typename T> bool OpTreeNode<T>::linkOnly(OpTreeNode<T>* aOther) {
-	if (aOther->getFlag(HAS_LEFT_CHILD) || aOther->getFlag(HAS_RIGHT_CHILD) || aOther->getFlag(HAS_ONLY_CHILD)) {
+	if (aOther->_flags[HAS_LEFT_CHILD] || aOther->_flags[HAS_RIGHT_CHILD] || aOther->_flags[HAS_ONLY_CHILD]) {
 		return false;
 	}
 	else {
 		if (link(aOther)) {
-			setFlag(IS_ONLY_CHILD);
-			aOther->setFlag(HAS_ONLY_CHILD);
+			_flags[IS_ONLY_CHILD] = 1;
+			aOther->_flags[HAS_ONLY_CHILD] = 1;
 			return true;
 		}
 		else {
 			return false;
 		}
+	}
+}
+
+template<typename T> bool OpTreeNode<T>::isLeftDescendant(OpTreeNode<T>* aOther) {
+	if (isDescendant(aOther)) {
+		// child must exist, either this or node on path from this to aOther
+		if (aOther->findChild()->_flags[IS_LEFT_CHILD]) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+template<typename T> bool OpTreeNode<T>::isRightDescendant(OpTreeNode<T>* aOther) {
+	if (isDescendant(aOther)) {
+		if (aOther->findChild()->_flags[IS_RIGHT_CHILD]) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
 	}
 }
 
@@ -112,6 +139,10 @@ template<typename T> OpTreeNode<T>* OpTreeNode<T>::findRoot()
 template<typename T> OpTreeNode<T>* OpTreeNode<T>::findParent()
 {
 	return dynamic_cast<OpTreeNode<T>*>(LctNode<T>::findParent());
+}
+template<typename T> OpTreeNode<T>* OpTreeNode<T>::findChild()
+{
+	return dynamic_cast<OpTreeNode<T>*>(LctNode<T>::findChild());
 }
 
 template<typename T> OpTreeNode<T>* OpTreeNode<T>::lowestCommonAncestor(LctNode<T>* aOther)

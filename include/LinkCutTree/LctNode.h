@@ -20,6 +20,7 @@ public:
 	int getRealSize();
 	int getLengthToRoot();
 
+	virtual LctNode* findChild();
 	virtual LctNode* findParent();
 	template<typename F> void path(F aFunction);
 	template<typename F> LctNode<T>* find_if(F aFunction);
@@ -92,6 +93,37 @@ template<typename T> LctNode<T>* LctNode<T>::findParent() {
 				}
 				else {
 					if (lTemp->_parent->_right == lTemp) {
+						return lTemp->_parent;
+					}
+					else {
+						lTemp = lTemp->_parent;
+					}
+				}
+			}
+		}
+		else { // there exists no left subtree and lTemp has no (path)parent -> lTemp is root of repr. tree
+			return nullptr;
+		}
+	}
+}
+
+template<typename T> LctNode<T>* LctNode<T>::findChild() {
+	LctNode* lTemp = this;
+	if (_right) { // parent must be found in left subtree
+		lTemp = _right;
+		while (lTemp->_left) {
+			lTemp = lTemp->_left;
+		}
+		return lTemp;
+	}
+	else { // parent is either on path from this to root (of aux) or the parent of root (which can be null)
+		if (_parent) {
+			while (true) {
+				if (lTemp->isRoot()) {
+					return lTemp->_parent;
+				}
+				else {
+					if (lTemp->_parent->_left == lTemp) {
 						return lTemp->_parent;
 					}
 					else {
