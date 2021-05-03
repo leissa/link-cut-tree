@@ -6,7 +6,6 @@
 
 template<typename T> class OpTreeNode : public LctNode<T> {
 public:
-	OpTreeNode() = default;
 	OpTreeNode(const T& aContent, int aID = idCounter++);
 
 	OpTreeNode* findRoot();
@@ -65,24 +64,34 @@ template<typename T> void OpTreeNode<T>::cut() {
 }
 
 template<typename T> bool OpTreeNode<T>::linkLeft(OpTreeNode<T>* aOther) {
-	if (aOther->_flags[HAS_ONLY_CHILD] || aOther->_flags[HAS_LEFT_CHILD] || !link(aOther)) {
+	if (aOther->_flags[HAS_ONLY_CHILD] || aOther->_flags[HAS_LEFT_CHILD]) {
 		return false;
 	}
 	else {
-		aOther->_flags[HAS_LEFT_CHILD] = 1;
-		this->_flags[IS_LEFT_CHILD] = 1;
-		return true;
+		if (link(aOther)) {
+			aOther->_flags[HAS_LEFT_CHILD] = 1;
+			this->_flags[IS_LEFT_CHILD] = 1;
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 }
 
 template<typename T> bool OpTreeNode<T>::linkRight(OpTreeNode<T>* aOther) {
-	if (aOther->_flags[HAS_ONLY_CHILD] || aOther->_flags[HAS_RIGHT_CHILD] || !link(aOther)) {
+	if (aOther->_flags[HAS_ONLY_CHILD] || aOther->_flags[HAS_RIGHT_CHILD]) {
 		return false;
 	}
 	else {
-		aOther->_flags[HAS_RIGHT_CHILD] = 1;
-		this->_flags[IS_RIGHT_CHILD] = 1;
-		return true;
+		if (link(aOther)) {
+			aOther->_flags[HAS_RIGHT_CHILD] = 1;
+			this->_flags[IS_RIGHT_CHILD] = 1;
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 }
 

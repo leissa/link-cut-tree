@@ -12,18 +12,18 @@ public:
 	virtual bool link(LctNode* aOther);
 	virtual void cut();
 
-	virtual LctNode* findRoot();
-	virtual LctNode* lowestCommonAncestor(LctNode* aOther);
-	virtual bool isDescendant(LctNode* aOther);
+	LctNode* findRoot();
+	LctNode* lowestCommonAncestor(LctNode* aOther);
+	bool isDescendant(LctNode* aOther);
 
 	int getVirtualSize();
 	int getRealSize();
-	int getLengthToRoot();
+	int getDepth();
 
 	virtual LctNode* findChild();
 	virtual LctNode* findParent();
 	template<typename F> void path(F aFunction);
-	template<typename F> LctNode<T>* find_if(F aFunction);
+	template<typename F> LctNode* find_if(F aFunction);
 
 	friend class LctUtils;
 	static int idCounter;
@@ -32,6 +32,7 @@ protected:
 	LctNode* _left, * _right, * _parent;
 	T _content;
 	int _id;
+
 	void rotR();
 	void rotL();
 	void splay();
@@ -44,9 +45,10 @@ protected:
 
 	// call from inheriting method
 	virtual void update_aggregate();
-	virtual void update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild);
-	virtual void update_aggregate_link(LctNode<T>* aNewChild);
+	virtual void update_aggregate_expose(LctNode* aNewChild, LctNode* aFormerChild);
+	virtual void update_aggregate_link(LctNode* aNewChild);
 };
+
 template<typename T> LctNode<T>::LctNode(const T& aContent, int aID) : _left(nullptr), _right(nullptr),
 _parent(nullptr), _content(aContent), _id(aID), _sizeDashedChildren(0), _sizeSubtree(1), _sizeDashedAncestors(0) {}
 
@@ -109,18 +111,18 @@ template<typename T> LctNode<T>* LctNode<T>::findParent() {
 
 template<typename T> LctNode<T>* LctNode<T>::findChild() {
 	LctNode* lTemp = this;
-	if (_right) { // parent must be found in left subtree
+	if (_right) {
 		lTemp = _right;
 		while (lTemp->_left) {
 			lTemp = lTemp->_left;
 		}
 		return lTemp;
 	}
-	else { // parent is either on path from this to root (of aux) or the parent of root (which can be null)
+	else {
 		if (_parent) {
 			while (true) {
 				if (lTemp->isRoot()) {
-					return lTemp->_parent;
+					return nullptr;
 				}
 				else {
 					if (lTemp->_parent->_left == lTemp) {
@@ -132,7 +134,7 @@ template<typename T> LctNode<T>* LctNode<T>::findChild() {
 				}
 			}
 		}
-		else { // there exists no left subtree and lTemp has no (path)parent -> lTemp is root of repr. tree
+		else {
 			return nullptr;
 		}
 	}
@@ -399,7 +401,7 @@ template<typename T> int LctNode<T>::getRealSize()
 	return (_right ? _right->_sizeSubtree : 0) + _sizeDashedChildren + 1;
 }
 
-template<typename T> int LctNode<T>::getLengthToRoot() {
+template<typename T> int LctNode<T>::getDepth() {
 	expose();
 	return _left ? (_left->_sizeSubtree - _left->_sizeDashedAncestors) : 0;
 }
