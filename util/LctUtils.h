@@ -9,6 +9,8 @@
 #include "LctNode.h"
 #include "LinkCutTree.h"
 #include "OpTreeNode.h"
+#include "TrivialTree.h"
+#include "TrivialTreeNode.h"
 
 class LctUtils {
 public:
@@ -44,12 +46,15 @@ public:
 		return ((j + 1) * nCk(2 * n - i + 1, (2 * n - i + j) / 2 + 1)) / (2 * n - i + 1);
 	}
 
-	static LinkCutTree<int, OpTreeNode> createRandomJoinTree(int aInnerNodes, std::vector<LctNode<int>*>* aNodes = nullptr, uint64_t aSeed = -1) {
+	static LinkCutTree<int, OpTreeNode> createJoinTree(int aInnerNodes, std::vector<LctNode<int>*>* aNodes = nullptr, uint64_t aSeed = -1) {
 		uint64_t lCatalan = ballot(0, 0, aInnerNodes);
 		if (aSeed == -1) {
 			aSeed = (((uint64_t)rand() << 32) | rand()) % lCatalan;
 		}
-		std::cout << aSeed << " / " << lCatalan << std::endl;
+		else {
+			aSeed -= 1;
+		}
+		std::cout << aSeed+1 << " / " << lCatalan << std::endl;
 		LinkCutTree<int, OpTreeNode> lLCT;
 		OpTreeNode<int>* lCurrent = lLCT.createTree(1, 1);
 		if (aNodes) {
@@ -96,19 +101,44 @@ public:
 		return lLCT;
 	}
 
-	static LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<LctNode<int>*>* aNodes = nullptr) {
-		srand(time(nullptr));
-		aNodes->clear();
+	static LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<LctNode<int>*>* aNodes = nullptr, TrivialTree* aTrivialTree = nullptr) {
 		LinkCutTree<int> aLCT;
-		aLCT.createTree(0, 0);
+		if (aNodes) {
+			aNodes->clear();
+			aNodes->push_back(aLCT.createTree(1, 1));
+		}
+		else {
+			aLCT.createTree(1, 1);
+		}
+		if (aTrivialTree) {
+			aTrivialTree->createTree(1);
+		}
 		for (int i = 1; i < aNodeCount; i++) {
 			if (aNodes) {
-				aNodes->push_back(aLCT.createTree(i, i));
+				aNodes->push_back(aLCT.createTree(i+1, i+1));
 			}
 			else {
-				aLCT.createTree(i, i);
+				aLCT.createTree(i+1, i+1);
 			}
-			aLCT[i]->link(aLCT[rand() % i]);
+			int r = rand() % i + 1;
+			aLCT[i+1]->link(aLCT[r]);
+			if (aTrivialTree) {
+				aTrivialTree->createTree(i + 1);
+				(*aTrivialTree)[i + 1]->link((*aTrivialTree)[r]);
+			}
+		}
+		return aLCT;
+	}
+
+	static LinkCutTree<int> createLeftDeepTree(int aNodeCount, TrivialTree* aTrivialTree) {
+		LinkCutTree<int> aLCT;
+		aLCT.createTree(1, 1);
+		aTrivialTree->createTree(1);
+		for (int i = 1; i < aNodeCount; i++) {
+			aLCT.createTree(i + 1, i + 1);
+			aLCT[i + 1]->link(aLCT[i]);
+			aTrivialTree->createTree(i + 1);
+			(*aTrivialTree)[i + 1]->link((*aTrivialTree)[i]);
 		}
 		return aLCT;
 	}

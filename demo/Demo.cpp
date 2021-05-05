@@ -5,6 +5,11 @@
 #include "LctNode.h"
 #include "OpTreeNode.h"
 #include "LinkCutTree.h"
+#include "TrivialTreeNode.h"
+#include "TrivialTree.h"
+#include <chrono>
+
+typedef std::chrono::high_resolution_clock Clock;
 
 template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<int>*>& aNodes, std::map<LctNode<int>*, std::vector<LctNode<int>*>>& aBackpointers) {
 	int lX, lY;
@@ -87,7 +92,7 @@ void loopDefault() {
 	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
 	lLct = LctUtils::createRandomLCT(25, &lNodes);
 	LctUtils::updateBackpointers(lNodes, lBackpointers);
-	LctUtils::printReprTree(lLct[0], &lBackpointers);
+	LctUtils::printReprTree(lLct[1], &lBackpointers);
 	std::string lCmd;
 	while (true) {
 		int lX, lY;
@@ -101,7 +106,7 @@ void loopDefault() {
 				lNodes.clear();
 				lLct = LctUtils::createRandomLCT(lX, &lNodes);
 				LctUtils::updateBackpointers(lNodes, lBackpointers);
-				LctUtils::printReprTree(lLct[0], &lBackpointers);
+				LctUtils::printReprTree(lLct[1], &lBackpointers);
 			}
 			else {
 				std::cout << "invalid command" << std::endl;
@@ -116,11 +121,11 @@ void loopOpTree() {
 	std::vector<LctNode<int>*> lNodes;
 	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
 	std::string lCmd;
-	lLct = LctUtils::createRandomJoinTree(25, &lNodes);
+	lLct = LctUtils::createJoinTree(25, &lNodes);
 	LctUtils::updateBackpointers(lNodes, lBackpointers);
 	LctUtils::printReprTree(lLct[1], &lBackpointers);
 	while (true) {
-		int lX, lY;
+		uint64_t lX, lY;
 		if (query(lCmd, lLct, lNodes, lBackpointers)) {
 			if (lCmd.compare("ll") == 0) {
 				std::cin >> lX;
@@ -140,7 +145,7 @@ void loopOpTree() {
 			else if (lCmd.compare("randomJoinTree") == 0) {
 				std::cin >> lX; // number of inner nodes
 				lNodes.clear();
-				lLct = LctUtils::createRandomJoinTree(lX, &lNodes);
+				lLct = LctUtils::createJoinTree(lX, &lNodes);
 				LctUtils::updateBackpointers(lNodes, lBackpointers);
 				LctUtils::printReprTree(lLct[1], &lBackpointers);
 			}
@@ -148,7 +153,7 @@ void loopOpTree() {
 				std::cin >> lX; // number of inner nodes
 				std::cin >> lY; // seed
 				lNodes.clear();
-				lLct = LctUtils::createRandomJoinTree(lX, &lNodes, lY);
+				lLct = LctUtils::createJoinTree(lX, &lNodes, lY);
 				LctUtils::updateBackpointers(lNodes, lBackpointers);
 				LctUtils::printReprTree(lLct[1], &lBackpointers);
 			}
@@ -179,6 +184,34 @@ void loopOpTree() {
 	}
 }
 
+void benchmark() {
+	LinkCutTree<int> lLct;
+	TrivialTree aTt;
+	const int aRuns = 20;
+	const int aQueries = 300;
+	const int aNodes = 1000;
+	int lAr[aQueries];
+	for (int i = 0; i < aRuns; i++) {
+		aTt.clear();
+		lLct = LctUtils::createLeftDeepTree(aNodes, &aTt);
+		for (int i = 0; i < aQueries; i++) {
+			lAr[i] = rand() % aNodes + 1;
+		}
+		auto start = Clock::now();
+		for (int i = 0; i < aQueries; i++) {
+			lLct[lAr[i]]->findRoot();
+		}
+		auto elapsed = Clock::now() - start;
+		std::cout << std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count() << " ";
+		start = Clock::now();
+		for (int i = 0; i < aQueries; i++) {
+			aTt[lAr[i]]->findRoot();
+		}
+		elapsed = Clock::now() - start;
+		std::cout << std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count() << std::endl;
+	}
+}
+
 int main()
 {
 	srand(time(nullptr));
@@ -201,6 +234,7 @@ int main()
 				loopOpTree();
 				break;
 			case 3:
+				benchmark();
 				break;
 			}
 		}
