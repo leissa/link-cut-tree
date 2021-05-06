@@ -63,7 +63,7 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 			});
 		std::cout << (aRes ? aRes->getID() : -1) << std::endl;
 	}
-	else if(aCmd.compare("isDesc") == 0) {
+	else if (aCmd.compare("isDesc") == 0) {
 		std::cin >> lX;
 		std::cin >> lY;
 		std::cout << (aLct[lX]->isDescendant(aLct[lY]) ? "true" : "false") << std::endl;
@@ -97,11 +97,12 @@ void loopDefault() {
 	while (true) {
 		int lX, lY;
 		if (query(lCmd, lLct, lNodes, lBackpointers)) {
-			if(lCmd.compare("link") == 0) {
+			if (lCmd.compare("link") == 0) {
 				std::cin >> lX;
 				std::cin >> lY;
 				lLct[lX]->link(lLct[lY]);
-			}else if (lCmd.compare("random") == 0) {
+			}
+			else if (lCmd.compare("random") == 0) {
 				std::cin >> lX;
 				lNodes.clear();
 				lLct = LctUtils::createRandomLCT(lX, &lNodes);
@@ -187,29 +188,43 @@ void loopOpTree() {
 void benchmark() {
 	LinkCutTree<int> lLct;
 	TrivialTree aTt;
-	const int aRuns = 20;
-	const int aQueries = 300;
+	const int aRuns = 200;
+	const int aQueries = 1000;
 	const int aNodes = 1000;
-	int lAr[aQueries];
+	int lQueries[aQueries];
+	int lPerm[aNodes];
+	long long lSum1 = 0;
+	long long lSum2 = 0;
+	std::default_random_engine generator;
+	std::exponential_distribution<double> distribution(20);
 	for (int i = 0; i < aRuns; i++) {
 		aTt.clear();
-		lLct = LctUtils::createLeftDeepTree(aNodes, &aTt);
+		lLct = LctUtils::createRandomLCT(aNodes, nullptr, &aTt);
+		for (int i = 0; i < aNodes; i++) {
+			lPerm[i] = i + 1;
+		}
+		std::shuffle(lPerm, lPerm + aNodes, generator);
 		for (int i = 0; i < aQueries; i++) {
-			lAr[i] = rand() % aNodes + 1;
+			lQueries[i] = lPerm[(int)(fmod(distribution(generator), 1) * aNodes)];
+			//lAr[i] = rand() % aNodes + 1;
 		}
 		auto start = Clock::now();
-		for (int i = 0; i < aQueries; i++) {
-			lLct[lAr[i]]->findRoot();
-		}
-		auto elapsed = Clock::now() - start;
-		std::cout << std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count() << " ";
+		auto end = Clock::now();
 		start = Clock::now();
 		for (int i = 0; i < aQueries; i++) {
-			aTt[lAr[i]]->findRoot();
+			lLct[lQueries[i]]->findRoot();
 		}
-		elapsed = Clock::now() - start;
-		std::cout << std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count() << std::endl;
+		end = Clock::now();
+		lSum1 += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+		start = Clock::now();
+		for (int i = 0; i < aQueries; i++) {
+			aTt[lQueries[i]]->findRoot();
+		}
+		end = Clock::now();
+		lSum2 += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 	}
+	std::cout << lSum1 / (aRuns * 1.0) << " ";
+	std::cout << lSum2 / (aRuns * 1.0) << " " << (lSum1 * 1.0 / lSum2) << std::endl;
 }
 
 int main()
