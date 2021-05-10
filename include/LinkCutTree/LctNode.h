@@ -12,8 +12,8 @@ public:
 	virtual bool link(LctNode* aOther);
 	virtual void cut();
 
-	LctNode* findRoot();
-	LctNode* lowestCommonAncestor(LctNode* aOther);
+	virtual LctNode* findRoot();
+	virtual LctNode* lowestCommonAncestor(LctNode* aOther);
 	bool isDescendant(LctNode* aOther);
 
 	int getVirtualSize();

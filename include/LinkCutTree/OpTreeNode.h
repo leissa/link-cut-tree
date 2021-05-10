@@ -21,10 +21,9 @@ public:
 		HAS_RIGHT_CHILD,
 		HAS_ONLY_CHILD
 	};
-	void setFlag(flagType aType, bool aValue = true);
-	bool getFlag(flagType aType);
 
 	void cut();
+	bool link(LctNode<T>* aOther);
 
 	bool isLeftDescendant(OpTreeNode<T>* aOther);
 	bool isRightDescendant(OpTreeNode<T>* aOther);
@@ -36,7 +35,6 @@ public:
 	friend class LctUtils;
 private:
 	std::vector<bool> _flags;
-	using LctNode::link;
 };
 
 template<typename T> OpTreeNode<T>::OpTreeNode(const T& aContent, int aID) : LctNode<T>(aContent, aID), _flags(std::vector<bool>(6, false)) {}
@@ -57,10 +55,14 @@ template<typename T> void OpTreeNode<T>::cut() {
 			lParent->_flags[HAS_ONLY_CHILD] = 0;
 			this->_flags[IS_ONLY_CHILD] = 0;
 		}
-		dynamic_cast<OpTreeNode<T>*>(_left)->_parent = nullptr; // left is on preferred path
+		static_cast<OpTreeNode<T>*>(_left)->_parent = nullptr; // left is on preferred path
 		_left = nullptr;
 		update_aggregate();
 	}
+}
+
+template<typename T> bool OpTreeNode<T>::link(LctNode<T>* aOther) {
+	return false;
 }
 
 template<typename T> bool OpTreeNode<T>::linkLeft(OpTreeNode<T>* aOther) {
@@ -68,7 +70,7 @@ template<typename T> bool OpTreeNode<T>::linkLeft(OpTreeNode<T>* aOther) {
 		return false;
 	}
 	else {
-		if (link(aOther)) {
+		if (LctNode<T>::link(aOther)) {
 			aOther->_flags[HAS_LEFT_CHILD] = 1;
 			this->_flags[IS_LEFT_CHILD] = 1;
 			return true;
@@ -84,7 +86,7 @@ template<typename T> bool OpTreeNode<T>::linkRight(OpTreeNode<T>* aOther) {
 		return false;
 	}
 	else {
-		if (link(aOther)) {
+		if (LctNode<T>::link(aOther)) {
 			aOther->_flags[HAS_RIGHT_CHILD] = 1;
 			this->_flags[IS_RIGHT_CHILD] = 1;
 			return true;
@@ -100,7 +102,7 @@ template<typename T> bool OpTreeNode<T>::linkOnly(OpTreeNode<T>* aOther) {
 		return false;
 	}
 	else {
-		if (link(aOther)) {
+		if (LctNode<T>::link(aOther)) {
 			_flags[IS_ONLY_CHILD] = 1;
 			aOther->_flags[HAS_ONLY_CHILD] = 1;
 			return true;
@@ -142,21 +144,21 @@ template<typename T> bool OpTreeNode<T>::isRightDescendant(OpTreeNode<T>* aOther
 
 template<typename T> OpTreeNode<T>* OpTreeNode<T>::findRoot()
 {
-	return dynamic_cast<OpTreeNode<T>*>(LctNode<T>::findRoot());
+	return static_cast<OpTreeNode<T>*>(LctNode<T>::findRoot());
 }
 
 template<typename T> OpTreeNode<T>* OpTreeNode<T>::findParent()
 {
-	return dynamic_cast<OpTreeNode<T>*>(LctNode<T>::findParent());
+	return static_cast<OpTreeNode<T>*>(LctNode<T>::findParent());
 }
 template<typename T> OpTreeNode<T>* OpTreeNode<T>::findChild()
 {
-	return dynamic_cast<OpTreeNode<T>*>(LctNode<T>::findChild());
+	return static_cast<OpTreeNode<T>*>(LctNode<T>::findChild());
 }
 
 template<typename T> OpTreeNode<T>* OpTreeNode<T>::lowestCommonAncestor(LctNode<T>* aOther)
 {
-	return dynamic_cast<OpTreeNode<T>*>(LctNode<T>::lowestCommonAncestor(aOther));
+	return static_cast<OpTreeNode<T>*>(LctNode<T>::lowestCommonAncestor(aOther));
 }
 
 #endif
