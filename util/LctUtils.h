@@ -11,6 +11,7 @@
 #include "OpTreeNode.h"
 #include "TrivialTree.h"
 #include "TrivialTreeNode.h"
+#include <math.h>
 
 class LctUtils {
 public:
@@ -54,7 +55,7 @@ public:
 		else {
 			aSeed -= 1;
 		}
-		std::cout << aSeed+1 << " / " << lCatalan << std::endl;
+		std::cout << aSeed + 1 << " / " << lCatalan << std::endl;
 		LinkCutTree<int, OpTreeNode> lLCT;
 		OpTreeNode<int>* lCurrent = lLCT.createTree(1, 1);
 		if (aNodes) {
@@ -115,19 +116,104 @@ public:
 		}
 		for (int i = 1; i < aNodeCount; i++) {
 			if (aNodes) {
-				aNodes->push_back(aLCT.createTree(i+1, i+1));
+				aNodes->push_back(aLCT.createTree(i + 1, i + 1));
 			}
 			else {
-				aLCT.createTree(i+1, i+1);
+				aLCT.createTree(i + 1, i + 1);
 			}
 			int r = rand() % i + 1;
-			aLCT[i+1]->link(aLCT[r]);
+			aLCT[i + 1]->link(aLCT[r]);
 			if (aTrivialTree) {
 				aTrivialTree->createTree(i + 1);
 				(*aTrivialTree)[i + 1]->link((*aTrivialTree)[r]);
 			}
 		}
 		return aLCT;
+	}
+
+	static LinkCutTree<int> pruefer(int aNodeCount, std::vector<LctNode<int>*>* aNodes = nullptr, TrivialTree* aTrivialTree = nullptr) {
+		if (aNodes) {
+			aNodes->clear();
+		}
+		std::vector<int> lCode(aNodeCount - 2);
+		for (int i = 0; i < aNodeCount - 2; i++) {
+			lCode[i] = (rand() % aNodeCount) + 1;
+		}
+		std::vector<int> lDegree(aNodeCount, 1);
+		LinkCutTree<int> lLCT;
+		for (int i = 0; i < aNodeCount - 2; i++) {
+			lDegree[lCode[i] - 1]++;
+		}
+		for (int i = 0; i < aNodeCount; i++) {
+			if (aNodes) {
+				aNodes->push_back(lLCT.createTree(i + 1, i + 1));
+			}
+			else {
+				lLCT.createTree(i + 1, i + 1);
+			}
+			if (aTrivialTree) {
+				aTrivialTree->createTree(i + 1);
+			}
+		}
+		for (int i = 0; i < aNodeCount - 2; i++) {
+			for (int j = 0; j < aNodeCount; j++) {
+				if (lDegree[j] == 1 && lDegree[lCode[i] - 1] > 1) {
+					lLCT[j + 1]->link(lLCT[lCode[i]]);
+					if (aTrivialTree) {
+						(*aTrivialTree)[j + 1]->link((*aTrivialTree)[lCode[i]]);
+					}
+					lDegree[j]--;
+					lDegree[lCode[i] - 1]--;
+				}
+			}
+		}
+		for (int i = 0; i < aNodeCount; i++) {
+			if (lDegree[i] == 1) {
+				lLCT[aNodeCount]->link(lLCT[i + 1]);
+				break;
+			}
+		}
+		return lLCT;
+	}
+
+	static void addChildren(int aDepth, LctNode<int>* aParent, LinkCutTree<int>& l, TrivialTree* aTrivialTree) {
+		if (aDepth == 0) {
+			return;
+		}
+		else {
+			int lNoMiddleChild = aParent->getContent() * 3;
+			l[lNoMiddleChild - 1]->link(aParent);
+			l[lNoMiddleChild]->link(aParent);
+			l[lNoMiddleChild + 1]->link(aParent);
+			if (aTrivialTree) {
+				(*aTrivialTree)[lNoMiddleChild - 1]->link((*aTrivialTree)[aParent->getContent()]);
+				(*aTrivialTree)[lNoMiddleChild]->link((*aTrivialTree)[aParent->getContent()]);
+				(*aTrivialTree)[lNoMiddleChild + 1]->link((*aTrivialTree)[aParent->getContent()]);
+			}
+			addChildren(aDepth - 1, l[lNoMiddleChild - 1], l, aTrivialTree);
+			addChildren(aDepth - 1, l[lNoMiddleChild], l, aTrivialTree);
+			addChildren(aDepth - 1, l[lNoMiddleChild + 1], l, aTrivialTree);
+		}
+	}
+
+	static LinkCutTree<int> ternary(int aDepth, std::vector<LctNode<int>*>* aNodes = nullptr, TrivialTree* aTrivialTree = nullptr) {
+		if (aNodes) {
+			aNodes->clear();
+		}
+		LinkCutTree<int> lLCT;
+		for (int i = 1; i <= (3 * pow(3, aDepth) - 1) / 2; i++) {
+			if (aNodes) {
+				aNodes->push_back(lLCT.createTree(i, i));
+			}
+			else {
+				lLCT.createTree(i, i);
+			}
+			if (aTrivialTree) {
+				aTrivialTree->createTree(i);
+			}
+		}
+		addChildren(aDepth, lLCT[1], lLCT, aTrivialTree);
+		return lLCT;
 	}
 
 	static LinkCutTree<int> createLeftDeepTree(int aNodeCount, TrivialTree* aTrivialTree) {
