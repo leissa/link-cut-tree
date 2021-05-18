@@ -1,15 +1,21 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <algorithm>
 #include <ctime>
+#include <chrono>
+#include <random>
 #include "LctUtils.h"
 #include "LctNode.h"
 #include "OpTreeNode.h"
 #include "LinkCutTree.h"
 #include "TrivialTreeNode.h"
 #include "TrivialTree.h"
-#include <chrono>
 
 typedef std::chrono::high_resolution_clock Clock;
+
+const int TIME_LIMIT = 120;
+const int MIN_RUN_COUNT = 25;
 
 template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<int>*>& aNodes, std::map<LctNode<int>*, std::vector<LctNode<int>*>>& aBackpointers) {
 	int lX, lY;
@@ -123,6 +129,20 @@ void loopDefault() {
 				LctUtils::updateBackpointers(lNodes, lBackpointers);
 				LctUtils::printReprTree(lLct[1], &lBackpointers);
 			}
+			else if (lCmd.compare("binary") == 0) {
+				std::cin >> lX;
+				lNodes.clear();
+				lLct = LctUtils::binary(lX, &lNodes);
+				LctUtils::updateBackpointers(lNodes, lBackpointers);
+				LctUtils::printReprTree(lLct[1], &lBackpointers);
+			}
+			else if (lCmd.compare("unbalanced") == 0) {
+				std::cin >> lX;
+				lNodes.clear();
+				lLct = LctUtils::unbalancedBinary(lX, &lNodes);
+				LctUtils::updateBackpointers(lNodes, lBackpointers);
+				LctUtils::printReprTree(lLct[1], &lBackpointers);
+			}
 			else {
 				std::cout << "invalid command" << std::endl;
 			}
@@ -199,7 +219,30 @@ void loopOpTree() {
 	}
 }
 
-auto runLct(LinkCutTree<int>& aLct, int aQueries[], int aNodeCount = 10000) {
+void printRes(std::vector<int> aNodes, std::vector<double> aRes, std::vector<double> aLctPerf, std::vector<double> aTrivialPerf) {
+	std::cout << "x= [";
+	for (int i = 0; i < aNodes.size(); i++) {
+		std::cout << aNodes.at(i) << (i == aNodes.size() - 1 ? "" : ",");
+	}
+	std::cout << "]" << std::endl;
+	std::cout << "y = [";
+	for (int i = 0; i < aRes.size(); i++) {
+		std::cout << aRes.at(i) << (i == aRes.size() - 1 ? "" : ",");
+	}
+	std::cout << "]" << std::endl;
+	std::cout << "y = [";
+	for (int i = 0; i < aRes.size(); i++) {
+		std::cout << aLctPerf.at(i) << (i == aRes.size() - 1 ? "" : ",");
+	}
+	std::cout << "]" << std::endl;
+	std::cout << "y = [";
+	for (int i = 0; i < aRes.size(); i++) {
+		std::cout << aTrivialPerf.at(i) << (i == aRes.size() - 1 ? "" : ",");
+	}
+	std::cout << "]" << std::endl;
+}
+
+auto runLct(LinkCutTree<int>& aLct, int aQueries[], int aNodeCount) {
 	auto lStart = Clock::now();
 	for (int i = 0; i < aNodeCount; i++) {
 		aLct[aQueries[i]]->findRoot();
@@ -208,7 +251,7 @@ auto runLct(LinkCutTree<int>& aLct, int aQueries[], int aNodeCount = 10000) {
 	return std::chrono::duration_cast<std::chrono::microseconds>(lEnd - lStart).count();
 }
 
-auto runTrivial(TrivialTree& aTt, int aQueries[], int aNodeCount = 10000) {
+auto runTrivial(TrivialTree& aTt, int aQueries[], int aNodeCount) {
 	auto lStart = Clock::now();
 	for (int i = 0; i < aNodeCount; i++) {
 		aTt[aQueries[i]]->findRoot();
@@ -218,74 +261,209 @@ auto runTrivial(TrivialTree& aTt, int aQueries[], int aNodeCount = 10000) {
 }
 
 void testRandomNonBinary() {
+	std::cout << "random non-binary" << std::endl;
 	LinkCutTree<int> lLct;
 	TrivialTree lTt;
-	int lNodes[] = { 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600 };
-	//int lNodes[] = { 1000, 4000, 8000, 12000, 16000, 20000, 24000, 28000 };
+	std::vector<int> lNodes = { 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600 };
+	for (int i = 2; i <= 32; i += 2) {
+		lNodes.push_back(i * 1000);
+	}
+	std::vector<double> lRes(lNodes.size());
+	std::vector<double> lLctPerf(lNodes.size());
+	std::vector<double> lTrivialPerf(lNodes.size());
 	int* lQueries;
-	long long lSumLinkCut = 0;
-	long long lSumTrivial = 0;
+	long long lSumLinkCut;
+	long long lSumTrivial;
 	int lRunCount;
-	const int lTimeLimit = 60;
-	int lQueryCount;
-	for (int i = 0; i < 10; i++) {
-		lQueryCount = lNodes[i] * 2;
+	for (int i = 0; i < lNodes.size(); i++) {
+		lSumLinkCut = 0;
+		lSumTrivial = 0;
 		lRunCount = 0;
 		std::cout << lNodes[i] << std::endl;
 		auto lStart = Clock::now();
-		while (std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - lStart).count() < lTimeLimit) {
-			lQueries = new int[lQueryCount];
+		while (std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - lStart).count() < TIME_LIMIT || lRunCount < MIN_RUN_COUNT) {
+			lQueries = new int[lNodes[i] * 2];
 			lTt.clear();
 			lLct = LctUtils::pruefer(lNodes[i], nullptr, &lTt);
-			for (int k = 0; k < lQueryCount; k++) {
+			for (int k = 0; k < lNodes[i] * 2; k++) {
 				lQueries[k] = rand() % lNodes[i] + 1;
+			}
+			lSumLinkCut += runLct(lLct, lQueries, lNodes[i] * 2);
+			lSumTrivial += runTrivial(lTt, lQueries, lNodes[i] * 2);
+			delete[] lQueries;
+			lRunCount++;
+		}
+		lLctPerf[i] = lSumLinkCut / (lRunCount * 1.0);
+		lTrivialPerf[i] = lSumTrivial / (lRunCount * 1.0);
+		lRes[i] = (lSumLinkCut * 1.0 / lSumTrivial);
+	}
+	printRes(lNodes, lRes, lLctPerf, lTrivialPerf);
+}
+
+void testTernary() {
+	std::cout << "ternary" << std::endl;
+	LinkCutTree<int> lLct;
+	TrivialTree lTt;
+	std::vector<int> lDepth = { 3, 4, 5, 6, 7, 8, 9, 10 };
+	std::vector<double> lRes(lDepth.size());
+	std::vector<double> lLctPerf(lDepth.size());
+	std::vector<double> lTrivialPerf(lDepth.size());
+	int* lQueries;
+	int lRunCount;
+	long long lSumLinkCut;
+	long long lSumTrivial;
+	int lNodes;
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine e(seed);
+	for (int i = 0; i < lDepth.size(); i++) {
+		lSumLinkCut = 0;
+		lSumTrivial = 0;
+		lRunCount = 0;
+		lNodes = (3 * pow(3, lDepth[i]) - 1) / 2;
+		lLct = LctUtils::ternary(lDepth[i], nullptr, &lTt);
+		std::cout << lDepth[i] << " (" << lNodes << ")" << std::endl;
+		auto lStart = Clock::now();
+		while (std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - lStart).count() < TIME_LIMIT || lRunCount < MIN_RUN_COUNT) {
+			lQueries = new int[2 * lNodes];
+			for (int k = 0; k < 2 * lNodes; k++) {
+				lQueries[k] = rand() % lNodes + 1;
+				//lQueries[k] = k % lNodes + 1;
+			}
+			//std::shuffle(lQueries, lQueries + lQueryCount, e);
+			lSumLinkCut += runLct(lLct, lQueries, 2 * lNodes);
+			lSumTrivial += runTrivial(lTt, lQueries, 2 * lNodes);
+			delete[] lQueries;
+			lRunCount++;
+		}
+		lLctPerf[i] = lSumLinkCut / (lRunCount * 1.0);
+		lTrivialPerf[i] = lSumTrivial / (lRunCount * 1.0);
+		lRes[i] = (lSumLinkCut * 1.0 / lSumTrivial);
+	}
+	printRes(lDepth, lRes, lLctPerf, lTrivialPerf);
+}
+
+void testFullBinary() {
+	std::cout << "binary" << std::endl;
+	LinkCutTree<int> lLct;
+	TrivialTree lTt;
+	std::vector<int> lDepth = { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+	std::vector<double> lRes(lDepth.size());
+	std::vector<double> lLctPerf(lDepth.size());
+	std::vector<double> lTrivialPerf(lDepth.size());
+	int* lQueries;
+	int lRunCount;
+	int lNodes;
+	int lQueryCount;
+	for (int i = 0; i < lDepth.size(); i++) {
+		long long lSumLinkCut = 0;
+		long long lSumTrivial = 0;
+		lNodes = pow(2, lDepth[i] + 1) - 1;
+		lLct = LctUtils::binary(lDepth[i], nullptr, &lTt);
+		lQueryCount = 2 * lNodes;
+		lRunCount = 0;
+		std::cout << lDepth[i] << " (" << lNodes << ")" << std::endl;
+		auto lStart = Clock::now();
+		while (std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - lStart).count() < TIME_LIMIT || lRunCount < MIN_RUN_COUNT) {
+			lQueries = new int[lQueryCount];
+			for (int k = 0; k < lQueryCount; k++) {
+				lQueries[k] = rand() % lNodes + 1;
 			}
 			lSumLinkCut += runLct(lLct, lQueries, lQueryCount);
 			lSumTrivial += runTrivial(lTt, lQueries, lQueryCount);
 			delete[] lQueries;
 			lRunCount++;
 		}
-		std::cout << lSumLinkCut / (lRunCount * 1.0) << " ";
-		std::cout << lSumTrivial / (lRunCount * 1.0) << " " << (lSumLinkCut * 1.0 / lSumTrivial) <<
-			" " << lRunCount << std::endl;
+		lLctPerf[i] = lSumLinkCut / (lRunCount * 1.0);
+		lTrivialPerf[i] = lSumTrivial / (lRunCount * 1.0);
+		lRes[i] = (lSumLinkCut * 1.0 / lSumTrivial);
 	}
+	printRes(lDepth, lRes, lLctPerf, lTrivialPerf);
 }
 
-void testTernary() {
+void testUnbalancedBinary() {
+	std::cout << "unbalanced binary" << std::endl;
 	LinkCutTree<int> lLct;
 	TrivialTree lTt;
-	int lDepth[] = { 3, 4, 5, 6, 7, 8, 9 };
+	std::vector<int> lDepth;// = { 25, 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800 };
+	for (int i = 1; i <= 16; i += 1) {
+		lDepth.push_back(i * 1000);
+	}
+	std::vector<double> lRes(lDepth.size());
+	std::vector<double> lLctPerf(lDepth.size());
+	std::vector<double> lTrivialPerf(lDepth.size());
 	int* lQueries;
-	long long lSumLinkCut = 0;
-	long long lSumTrivial = 0;
 	int lRunCount;
-	int lTimeLimit = 60;
 	int lNodes;
-	for (int i = 0; i < 7; i++) {
-		lLct = LctUtils::ternary(lDepth[i], nullptr, &lTt);
+	long long lSumLinkCut;
+	long long lSumTrivial;
+	for (int i = 0; i < lDepth.size(); i++) {
+		lSumLinkCut = 0;
+		lSumTrivial = 0;
+		lNodes = 2 * lDepth[i] + 1;
+		lLct = LctUtils::unbalancedBinary(lDepth[i], nullptr, &lTt);
 		lRunCount = 0;
-		std::cout << lDepth[i] << std::endl;
+		std::cout << lDepth[i] << " (" << lNodes << ")" << std::endl;
 		auto lStart = Clock::now();
-		while (std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - lStart).count() < lTimeLimit) {
-			lNodes = (3 * pow(3, lDepth[i]) - 1) / 2;
-			lQueries = new int[10000];
-			for (int k = 0; k < 10000; k++) {
+		while (std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - lStart).count() < TIME_LIMIT || lRunCount < MIN_RUN_COUNT) {
+			lQueries = new int[2 * lNodes];
+			for (int k = 0; k < 2 * lNodes; k++) {
 				lQueries[k] = rand() % lNodes + 1;
 			}
-			lSumLinkCut += runLct(lLct, lQueries);
-			lSumTrivial += runTrivial(lTt, lQueries);
+			lSumLinkCut += runLct(lLct, lQueries, 2 * lNodes);
+			lSumTrivial += runTrivial(lTt, lQueries, 2 * lNodes);
 			delete[] lQueries;
 			lRunCount++;
 		}
-		std::cout << lSumLinkCut / (lRunCount * 1.0) << " ";
-		std::cout << lSumTrivial / (lRunCount * 1.0) << " " << (lSumLinkCut * 1.0 / lSumTrivial) <<
-			" " << lRunCount << std::endl;
+		lLctPerf[i] = lSumLinkCut / (lRunCount * 1.0);
+		lTrivialPerf[i] = lSumTrivial / (lRunCount * 1.0);
+		lRes[i] = (lSumLinkCut * 1.0 / lSumTrivial);
 	}
+	printRes(lDepth, lRes, lLctPerf, lTrivialPerf);
+}
+
+void testDegenerate() {
+	std::cout << "degenerate" << std::endl;
+	LinkCutTree<int> lLct;
+	TrivialTree lTt;
+	std::vector<int> lNodes = { 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600 };
+	for (int i = 2; i <= 32; i += 2) {
+		lNodes.push_back(i * 1000);
+	}
+	std::vector<double> lRes(lNodes.size());
+	std::vector<double> lLctPerf(lNodes.size());
+	std::vector<double> lTrivialPerf(lNodes.size());
+	int* lQueries;
+	int lRunCount;
+	for (int i = 0; i < 10; i++) {
+		long long lSumLinkCut = 0;
+		long long lSumTrivial = 0;
+		lLct = LctUtils::createLeftDeepTree(lNodes[i], &lTt);
+		lRunCount = 0;
+		std::cout << lNodes[i] << std::endl;
+		auto lStart = Clock::now();
+		while (std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - lStart).count() < TIME_LIMIT || lRunCount < MIN_RUN_COUNT) {
+			lQueries = new int[lNodes[i] * 2];
+			for (int k = 0; k < lNodes[i] * 2; k++) {
+				lQueries[k] = rand() % lNodes[i] + 1;
+			}
+			lSumLinkCut += runLct(lLct, lQueries, lNodes[i] * 2);
+			lSumTrivial += runTrivial(lTt, lQueries, lNodes[i] * 2);
+			delete[] lQueries;
+			lRunCount++;
+		}
+		lLctPerf[i] = lSumLinkCut / (lRunCount * 1.0);
+		lTrivialPerf[i] = lSumTrivial / (lRunCount * 1.0);
+		lRes[i] = (lSumLinkCut * 1.0 / lSumTrivial);
+	}
+	printRes(lNodes, lRes, lLctPerf, lTrivialPerf);
 }
 
 void benchmark() {
-	testRandomNonBinary();
-	testTernary();
+	//testRandomNonBinary();
+	//testTernary();
+	//testFullBinary();
+	testUnbalancedBinary();
+	//testDegenerate();
 }
 
 int main()

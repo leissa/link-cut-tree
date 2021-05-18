@@ -176,7 +176,7 @@ public:
 		return lLCT;
 	}
 
-	static void addChildren(int aDepth, LctNode<int>* aParent, LinkCutTree<int>& l, TrivialTree* aTrivialTree) {
+	static void addTernaryChildren(int aDepth, LctNode<int>* aParent, LinkCutTree<int>& l, TrivialTree* aTrivialTree) {
 		if (aDepth == 0) {
 			return;
 		}
@@ -190,9 +190,9 @@ public:
 				(*aTrivialTree)[lNoMiddleChild]->link((*aTrivialTree)[aParent->getContent()]);
 				(*aTrivialTree)[lNoMiddleChild + 1]->link((*aTrivialTree)[aParent->getContent()]);
 			}
-			addChildren(aDepth - 1, l[lNoMiddleChild - 1], l, aTrivialTree);
-			addChildren(aDepth - 1, l[lNoMiddleChild], l, aTrivialTree);
-			addChildren(aDepth - 1, l[lNoMiddleChild + 1], l, aTrivialTree);
+			addTernaryChildren(aDepth - 1, l[lNoMiddleChild - 1], l, aTrivialTree);
+			addTernaryChildren(aDepth - 1, l[lNoMiddleChild], l, aTrivialTree);
+			addTernaryChildren(aDepth - 1, l[lNoMiddleChild + 1], l, aTrivialTree);
 		}
 	}
 
@@ -201,7 +201,8 @@ public:
 			aNodes->clear();
 		}
 		LinkCutTree<int> lLCT;
-		for (int i = 1; i <= (3 * pow(3, aDepth) - 1) / 2; i++) {
+		int lNodeCount = (3 * pow(3, aDepth) - 1) / 2;
+		for (int i = 1; i <= lNodeCount; i++) {
 			if (aNodes) {
 				aNodes->push_back(lLCT.createTree(i, i));
 			}
@@ -212,7 +213,79 @@ public:
 				aTrivialTree->createTree(i);
 			}
 		}
-		addChildren(aDepth, lLCT[1], lLCT, aTrivialTree);
+		addTernaryChildren(aDepth, lLCT[1], lLCT, aTrivialTree);
+		return lLCT;
+	}
+
+	static void addBinaryChildren(int aDepth, LctNode<int>* aParent, LinkCutTree<int>& l, TrivialTree* aTrivialTree) {
+		if (aDepth == 0) {
+			return;
+		}
+		else {
+			int lLeftChild = aParent->getContent() * 2;
+			l[lLeftChild]->link(aParent);
+			l[lLeftChild + 1]->link(aParent);
+			if (aTrivialTree) {
+				(*aTrivialTree)[lLeftChild]->link((*aTrivialTree)[aParent->getContent()]);
+				(*aTrivialTree)[lLeftChild + 1]->link((*aTrivialTree)[aParent->getContent()]);
+			}
+			addBinaryChildren(aDepth - 1, l[lLeftChild], l, aTrivialTree);
+			addBinaryChildren(aDepth - 1, l[lLeftChild + 1], l, aTrivialTree);
+		}
+	}
+
+	static LinkCutTree<int> binary(int aDepth, std::vector<LctNode<int>*>* aNodes = nullptr, TrivialTree* aTrivialTree = nullptr) {
+		if (aNodes) {
+			aNodes->clear();
+		}
+		LinkCutTree<int> lLCT;
+		int lNodeCount = pow(2, aDepth + 1) - 1;
+		for (int i = 1; i <= lNodeCount; i++) {
+			if (aNodes) {
+				aNodes->push_back(lLCT.createTree(i, i));
+			}
+			else {
+				lLCT.createTree(i, i);
+			}
+			if (aTrivialTree) {
+				aTrivialTree->createTree(i);
+			}
+		}
+		addBinaryChildren(aDepth, lLCT[1], lLCT, aTrivialTree);
+		return lLCT;
+	}
+
+	static LinkCutTree<int> unbalancedBinary(int aDepth, std::vector<LctNode<int>*>* aNodes = nullptr, TrivialTree* aTrivialTree = nullptr) {
+		if (aNodes) {
+			aNodes->clear();
+		}
+		LinkCutTree<int> lLCT;
+		int lNodeCount = 2 * aDepth + 1;
+		for (int i = 1; i <= lNodeCount; i++) {
+			if (aNodes) {
+				aNodes->push_back(lLCT.createTree(i, i));
+			}
+			else {
+				lLCT.createTree(i, i);
+			}
+			if (aTrivialTree) {
+				aTrivialTree->createTree(i);
+			}
+		}
+		for (int i = 2; i <= lNodeCount; i++) {
+			if (i % 2 == 0) {
+				lLCT[i]->link(lLCT[i - 1]);
+				if (aTrivialTree) {
+					(*aTrivialTree)[i]->link((*aTrivialTree)[i - 1]);
+				}
+			}
+			else {
+				lLCT[i]->link(lLCT[i - 2]);
+				if (aTrivialTree) {
+					(*aTrivialTree)[i]->link((*aTrivialTree)[i - 2]);
+				}
+			}
+		}
 		return lLCT;
 	}
 
