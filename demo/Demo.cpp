@@ -14,8 +14,8 @@
 
 typedef std::chrono::high_resolution_clock Clock;
 
-const int TIME_LIMIT = 120;
-const int MIN_RUN_COUNT = 25;
+const int TIME_LIMIT = 240;
+const int MIN_RUN_COUNT = 50;
 
 template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<int>*>& aNodes, std::map<LctNode<int>*, std::vector<LctNode<int>*>>& aBackpointers) {
 	int lX, lY;
@@ -384,7 +384,7 @@ void testUnbalancedBinary() {
 	std::cout << "unbalanced binary" << std::endl;
 	LinkCutTree<int> lLct;
 	TrivialTree lTt;
-	std::vector<int> lDepth;// = { 25, 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800 };
+	std::vector<int> lDepth = { 25, 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800 };
 	for (int i = 1; i <= 16; i += 1) {
 		lDepth.push_back(i * 1000);
 	}
@@ -434,7 +434,7 @@ void testDegenerate() {
 	std::vector<double> lTrivialPerf(lNodes.size());
 	int* lQueries;
 	int lRunCount;
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < lNodes.size(); i++) {
 		long long lSumLinkCut = 0;
 		long long lSumTrivial = 0;
 		lLct = LctUtils::createLeftDeepTree(lNodes[i], &lTt);
@@ -459,11 +459,11 @@ void testDegenerate() {
 }
 
 void benchmark() {
-	//testRandomNonBinary();
-	//testTernary();
-	//testFullBinary();
+	testRandomNonBinary();
+	testTernary();
+	testFullBinary();
 	testUnbalancedBinary();
-	//testDegenerate();
+	testDegenerate();
 }
 
 int main()

@@ -13,7 +13,7 @@ public:
 	virtual void cut();
 
 	virtual LctNode* findRoot();
-	virtual LctNode* lowestCommonAncestor(LctNode* aOther);
+	virtual LctNode* lowestCommonDescendant(LctNode* aOther);
 	bool isDescendant(LctNode* aOther);
 
 	int getVirtualSize();
@@ -41,7 +41,7 @@ protected:
 
 	int _sizeDashedChildren;
 	int _sizeSubtree;
-	int _sizeDashedAncestors;
+	int _sizeDashedDescendants;
 
 	// call from inheriting method
 	virtual void update_aggregate();
@@ -50,7 +50,7 @@ protected:
 };
 
 template<typename T> LctNode<T>::LctNode(const T& aContent, int aID) : _left(nullptr), _right(nullptr),
-_parent(nullptr), _content(aContent), _id(aID), _sizeDashedChildren(0), _sizeSubtree(1), _sizeDashedAncestors(0) {}
+_parent(nullptr), _content(aContent), _id(aID), _sizeDashedChildren(0), _sizeSubtree(1), _sizeDashedDescendants(0) {}
 
 template<typename T> int LctNode<T>::idCounter = 0;
 
@@ -144,7 +144,7 @@ template<typename T> LctNode<T>* LctNode<T>::findChild() {
 * Find the lowest common ancestor between this Node and Node other.
 * If this and other are not on the same represented tree nullptr is returned.
 */
-template<typename T> LctNode<T>* LctNode<T>::lowestCommonAncestor(LctNode* aOther) {
+template<typename T> LctNode<T>* LctNode<T>::lowestCommonDescendant(LctNode* aOther) {
 	if (this == aOther) {
 		return this;
 	}
@@ -371,15 +371,15 @@ template<typename T> void LctNode<T>::splay() {
 
 template<typename T> void LctNode<T>::update_aggregate() {
 	_sizeSubtree = (_left ? _left->_sizeSubtree : 0) + (_right ? _right->_sizeSubtree : 0) + _sizeDashedChildren + 1;
-	_sizeDashedAncestors = (_left ? _left->_sizeDashedAncestors : 0) + (_right ? _right->_sizeDashedAncestors : 0) + _sizeDashedChildren;
+	_sizeDashedDescendants = (_left ? _left->_sizeDashedDescendants : 0) + (_right ? _right->_sizeDashedDescendants : 0) + _sizeDashedChildren;
 }
 
 template<typename T> void LctNode<T>::update_aggregate_expose(LctNode<T>* aNewChild, LctNode<T>* aFormerChild) {
 	_sizeDashedChildren -= aNewChild->_sizeSubtree;
-	_sizeDashedAncestors -= aNewChild->_sizeSubtree;
+	_sizeDashedDescendants -= aNewChild->_sizeSubtree;
 	if (aFormerChild) {
 		_sizeDashedChildren += aFormerChild->_sizeSubtree;
-		_sizeDashedAncestors += aFormerChild->_sizeSubtree;
+		_sizeDashedDescendants += aFormerChild->_sizeSubtree;
 	}
 }
 
@@ -403,7 +403,7 @@ template<typename T> int LctNode<T>::getRealSize()
 
 template<typename T> int LctNode<T>::getDepth() {
 	expose();
-	return _left ? (_left->_sizeSubtree - _left->_sizeDashedAncestors) : 0;
+	return _left ? (_left->_sizeSubtree - _left->_sizeDashedDescendants) : 0;
 }
 
 template<typename T> const T& LctNode<T>::getContent() const {
