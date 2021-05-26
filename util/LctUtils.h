@@ -4,6 +4,7 @@
 #include <vector>
 #include <random>
 #include <map>
+#include <math.h>
 #include <ctime>
 #include "cstdint"
 #include "LctNode.h"
@@ -11,7 +12,6 @@
 #include "OpTreeNode.h"
 #include "TrivialTree.h"
 #include "TrivialTreeNode.h"
-#include <math.h>
 
 class LctUtils {
 public:
@@ -56,8 +56,8 @@ public:
 			aSeed -= 1;
 		}
 		std::cout << aSeed + 1 << " / " << lCatalan << std::endl;
-		LinkCutTree<int, OpTreeNode> lLCT;
-		OpTreeNode<int>* lCurrent = lLCT.createTree(1, 1);
+		LinkCutTree<int, OpTreeNode> lLct;
+		OpTreeNode<int>* lCurrent = lLct.createTree(1, 1);
 		if (aNodes) {
 			aNodes->push_back(lCurrent);
 		}
@@ -83,52 +83,52 @@ public:
 			else {
 				lNodeCount++;
 				if (aNodes) {
-					aNodes->push_back(lLCT.createTree(lNodeCount, lNodeCount));
+					aNodes->push_back(lLct.createTree(lNodeCount, lNodeCount));
 				}
 				else {
-					lLCT.createTree(lNodeCount, lNodeCount);
+					lLct.createTree(lNodeCount, lNodeCount);
 				}
 				if (lLeft) {
-					lLCT[lNodeCount]->linkLeft(lCurrent);
+					lLct[lNodeCount]->linkLeft(lCurrent);
 				}
 				else {
-					lLCT[lNodeCount]->linkRight(lCurrent);
+					lLct[lNodeCount]->linkRight(lCurrent);
 				}
 				lLeft = true;
-				lCurrent = lLCT[lNodeCount];
+				lCurrent = lLct[lNodeCount];
 				lNoParOpen++;
 			}
 		}
-		return lLCT;
+		return lLct;
 	}
 
 	static LinkCutTree<int> createRandomLCT(int aNodeCount, std::vector<LctNode<int>*>* aNodes = nullptr, TrivialTree* aTrivialTree = nullptr) {
-		LinkCutTree<int> aLCT;
+		LinkCutTree<int> lLct;
 		if (aNodes) {
 			aNodes->clear();
-			aNodes->push_back(aLCT.createTree(1, 1));
+			aNodes->push_back(lLct.createTree(1, 1));
 		}
 		else {
-			aLCT.createTree(1, 1);
+			lLct.createTree(1, 1);
 		}
 		if (aTrivialTree) {
 			aTrivialTree->createTree(1);
 		}
 		for (int i = 1; i < aNodeCount; i++) {
 			if (aNodes) {
-				aNodes->push_back(aLCT.createTree(i + 1, i + 1));
+				aNodes->push_back(lLct.createTree(i + 1, i + 1));
 			}
 			else {
-				aLCT.createTree(i + 1, i + 1);
+				lLct.createTree(i + 1, i + 1);
 			}
 			int r = rand() % i + 1;
-			aLCT[i + 1]->link(aLCT[r]);
+			lLct[i + 1]->link(lLct[r]);
 			if (aTrivialTree) {
 				aTrivialTree->createTree(i + 1);
 				(*aTrivialTree)[i + 1]->link((*aTrivialTree)[r]);
 			}
 		}
-		return aLCT;
+		return lLct;
 	}
 
 	static LinkCutTree<int> pruefer(int aNodeCount, std::vector<LctNode<int>*>* aNodes = nullptr, TrivialTree* aTrivialTree = nullptr) {
@@ -290,16 +290,16 @@ public:
 	}
 
 	static LinkCutTree<int> createLeftDeepTree(int aNodeCount, TrivialTree* aTrivialTree) {
-		LinkCutTree<int> aLCT;
-		aLCT.createTree(1, 1);
+		LinkCutTree<int> lLct;
+		lLct.createTree(1, 1);
 		aTrivialTree->createTree(1);
 		for (int i = 1; i < aNodeCount; i++) {
-			aLCT.createTree(i + 1, i + 1);
-			aLCT[i + 1]->link(aLCT[i]);
+			lLct.createTree(i + 1, i + 1);
+			lLct[i + 1]->link(lLct[i]);
 			aTrivialTree->createTree(i + 1);
 			(*aTrivialTree)[i + 1]->link((*aTrivialTree)[i]);
 		}
-		return aLCT;
+		return lLct;
 	}
 
 	static void updateBackpointers(std::vector<LctNode<int>*>& aNodes,

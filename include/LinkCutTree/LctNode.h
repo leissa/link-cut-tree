@@ -13,7 +13,7 @@ public:
 	virtual void cut();
 
 	virtual LctNode* findRoot();
-	virtual LctNode* lowestCommonDescendant(LctNode* aOther);
+	virtual LctNode* lowestCommonAncestor(LctNode* aOther);
 	bool isDescendant(LctNode* aOther);
 
 	int getVirtualSize();
@@ -144,7 +144,7 @@ template<typename T> LctNode<T>* LctNode<T>::findChild() {
 * Find the lowest common ancestor between this Node and Node other.
 * If this and other are not on the same represented tree nullptr is returned.
 */
-template<typename T> LctNode<T>* LctNode<T>::lowestCommonDescendant(LctNode* aOther) {
+template<typename T> LctNode<T>* LctNode<T>::lowestCommonAncestor(LctNode* aOther) {
 	if (this == aOther) {
 		return this;
 	}

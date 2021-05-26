@@ -92,7 +92,23 @@ template<typename T> bool query(std::string& aCmd, T& aLct, std::vector<LctNode<
 	return false;
 }
 
+void printHelp() {
+	std::cout << "repr x - print the tree that node x belongs to\n" <<
+		"lct x - print the virtual tree that node x belongs to\n" <<
+		"cut x - cut node x\n" <<
+		"root x - print the root of the tree tree that node x belongs to\n" <<
+		"lca x y - find the lowest common ancestor of nodes x and y\n" <<
+		"parent x - find the parent of node x\n" <<
+		"printPath x - print the path from node x to the root\n" <<
+		"find x y - test if node y is on the path from node x to the root\n" <<
+		"isDesc x y - test if node x is a descendant of node y\n" <<
+		"vs x - print the size of the subtree rooted at x (virtual tree)\n" <<
+		"rs x - print the size of the subtree rooted at x (represented tree)\n" <<
+		"depth x - print the depth of node x\n";
+}
+
 void loopDefault() {
+	std::cout << "type \"help\" for a list of commands\n" << std::endl;
 	LinkCutTree<int> lLct;
 	std::vector<LctNode<int>*> lNodes;
 	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
@@ -143,6 +159,16 @@ void loopDefault() {
 				LctUtils::updateBackpointers(lNodes, lBackpointers);
 				LctUtils::printReprTree(lLct[1], &lBackpointers);
 			}
+			else if (lCmd.compare("help") == 0) {
+				std::cout <<
+					"link x y - link node x to node y\n" <<
+					"random x - create a random tree with x nodes (favors balanced trees)\n" <<
+					"pruefer x - create a random tree with x nodes (uniform)\n" <<
+					"ternary x - create a full ternary tree with height x\n" <<
+					"binary x - create a full binary tree with height x\n" <<
+					"unbalanced x - cretae an unbalanced tree with height x\n";
+				printHelp();
+			}
 			else {
 				std::cout << "invalid command" << std::endl;
 			}
@@ -152,6 +178,7 @@ void loopDefault() {
 }
 
 void loopOpTree() {
+	std::cout << "type \"help\" for a list of commands\n" << std::endl;
 	LinkCutTree<int, OpTreeNode> lLct;
 	std::vector<LctNode<int>*> lNodes;
 	std::map<LctNode<int>*, std::vector<LctNode<int>*>> lBackpointers;
@@ -211,6 +238,18 @@ void loopOpTree() {
 				std::cin >> lY;
 				std::cout << (lLct[lX]->isRightDescendant(lLct[lY]) ? "true" : "false") << std::endl;
 			}
+			else if (lCmd.compare("help") == 0) {
+				std::cout <<
+					"ll x y - make node x the left child of y\n" <<
+					"lr x - make node x the right child of y\n" <<
+					"lo x - make node x the only child of y\n" <<
+					"randomJoinTree x - create a random join tree with x nodes\n" <<
+					"joinTree x y - create a join tree with x nodes and seed y\n" <<
+					"flat x - create a forest with x single-node trees\n" <<
+					"isLeftDesc x y - test if node x is a left descendant of node y\n" <<
+					"isRightDesc x y - test if node x is a right descendant of node y\n";
+				printHelp();
+			}
 			else {
 				std::cout << "invalid command" << std::endl;
 			}
@@ -220,7 +259,7 @@ void loopOpTree() {
 }
 
 void printRes(std::vector<int> aNodes, std::vector<double> aRes, std::vector<double> aLctPerf, std::vector<double> aTrivialPerf) {
-	std::cout << "x= [";
+	std::cout << "x = [";
 	for (int i = 0; i < aNodes.size(); i++) {
 		std::cout << aNodes.at(i) << (i == aNodes.size() - 1 ? "" : ",");
 	}
