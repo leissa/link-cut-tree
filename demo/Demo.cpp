@@ -2,9 +2,12 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <ctime>
 #include <chrono>
 #include <random>
+
+#include <climits>
+#include <ctime>
+
 #include "LctUtils.h"
 #include "LctNode.h"
 #include "OpTreeNode.h"
