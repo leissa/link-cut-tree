@@ -49,7 +49,7 @@ public:
 
 	static LinkCutTree<int, OpTreeNode> createJoinTree(int aInnerNodes, std::vector<LctNode<int>*>* aNodes = nullptr, uint64_t aSeed = -1) {
 		uint64_t lCatalan = ballot(0, 0, aInnerNodes);
-		if (aSeed == -1) {
+		if (aSeed == uint64_t(-1)) {
 			aSeed = (((uint64_t)rand() << 32) | rand()) % lCatalan;
 		}
 		else {
@@ -306,7 +306,7 @@ public:
 		std::map<LctNode<int>*, std::vector<LctNode<int>*>>& aBackpointers)
 	{
 		aBackpointers.clear();
-		for (int i = 0; i < aNodes.size(); i++) {
+		for (size_t i = 0; i < aNodes.size(); i++) {
 			if (aNodes[i]->isRoot() && aNodes[i]->_parent) {
 				if (aBackpointers.count(aNodes[i]->_parent) == 0) {
 					aBackpointers[aNodes[i]->_parent] = std::vector<LctNode<int>*>();
@@ -317,7 +317,7 @@ public:
 	}
 
 	static void deleteNodes(std::vector<LctNode<int>*>* v) {
-		for (int i = 0; i < v->size(); i++) {
+		for (size_t i = 0; i < v->size(); i++) {
 			delete v->at(i);
 		}
 	}
@@ -335,7 +335,7 @@ public:
 			printSplayTreeRecursive(aPrefix + (aLeft ? "|    " : "     "), aNode->_right, false, aBackpointers);
 		}
 		if (aBackpointers && aBackpointers->count(aNode)) {
-			for (int i = 0; i < aBackpointers->at(aNode).size(); i++) {
+			for (size_t i = 0; i < aBackpointers->at(aNode).size(); i++) {
 				printSplayTreeRecursive(aPrefix + "~    ", aBackpointers->at(aNode).at(i), true, aBackpointers);
 			}
 		}
@@ -388,7 +388,7 @@ public:
 		std::cout << std::endl;
 		aDepth++;
 		if (aBackpointers && aBackpointers->count(aNode)) {
-			for (int i = 0; i < aBackpointers->at(aNode).size(); i++) {
+			for (size_t i = 0; i < aBackpointers->at(aNode).size(); i++) {
 				printReprTree(aBackpointers->at(aNode).at(i), aBackpointers, false, aDepth);
 			}
 		}

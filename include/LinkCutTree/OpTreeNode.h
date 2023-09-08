@@ -62,7 +62,7 @@ template<typename T> void OpTreeNode<T>::cut() {
 	}
 }
 
-template<typename T> bool OpTreeNode<T>::link(Node* aOther) {
+template<typename T> bool OpTreeNode<T>::link(Node*) {
 	return false;
 }
 

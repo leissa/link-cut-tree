@@ -226,7 +226,7 @@ void loopOpTree() {
 				std::cin >> lX;
 				lLct = LinkCutTree<int, OpTreeNode>();
 				lNodes.clear();
-				for (int i = 0; i < lX; i++) {
+				for (size_t i = 0; i < lX; i++) {
 					lNodes.push_back(lLct.createTree(i, i));
 				}
 				LctUtils::updateBackpointers(lNodes, lBackpointers);
@@ -263,22 +263,22 @@ void loopOpTree() {
 
 void printRes(std::vector<int> aNodes, std::vector<double> aRes, std::vector<double> aLctPerf, std::vector<double> aTrivialPerf) {
 	std::cout << "x = [";
-	for (int i = 0; i < aNodes.size(); i++) {
+	for (size_t i = 0; i < aNodes.size(); i++) {
 		std::cout << aNodes.at(i) << (i == aNodes.size() - 1 ? "" : ",");
 	}
 	std::cout << "]" << std::endl;
 	std::cout << "y = [";
-	for (int i = 0; i < aRes.size(); i++) {
+	for (size_t i = 0; i < aRes.size(); i++) {
 		std::cout << aRes.at(i) << (i == aRes.size() - 1 ? "" : ",");
 	}
 	std::cout << "]" << std::endl;
 	std::cout << "y = [";
-	for (int i = 0; i < aRes.size(); i++) {
+	for (size_t i = 0; i < aRes.size(); i++) {
 		std::cout << aLctPerf.at(i) << (i == aRes.size() - 1 ? "" : ",");
 	}
 	std::cout << "]" << std::endl;
 	std::cout << "y = [";
-	for (int i = 0; i < aRes.size(); i++) {
+	for (size_t i = 0; i < aRes.size(); i++) {
 		std::cout << aTrivialPerf.at(i) << (i == aRes.size() - 1 ? "" : ",");
 	}
 	std::cout << "]" << std::endl;
@@ -307,7 +307,7 @@ void testRandomNonBinary() {
 	LinkCutTree<int> lLct;
 	TrivialTree lTt;
 	std::vector<int> lNodes = { 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600 };
-	for (int i = 2; i <= 32; i += 2) {
+	for (size_t i = 2; i <= 32; i += 2) {
 		lNodes.push_back(i * 1000);
 	}
 	std::vector<double> lRes(lNodes.size());
@@ -317,7 +317,7 @@ void testRandomNonBinary() {
 	long long lSumLinkCut;
 	long long lSumTrivial;
 	int lRunCount;
-	for (int i = 0; i < lNodes.size(); i++) {
+	for (size_t i = 0; i < lNodes.size(); i++) {
 		lSumLinkCut = 0;
 		lSumTrivial = 0;
 		lRunCount = 0;
@@ -357,7 +357,7 @@ void testTernary() {
 	int lNodes;
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine e(seed);
-	for (int i = 0; i < lDepth.size(); i++) {
+	for (size_t i = 0; i < lDepth.size(); i++) {
 		lSumLinkCut = 0;
 		lSumTrivial = 0;
 		lRunCount = 0;
@@ -396,7 +396,7 @@ void testFullBinary() {
 	int lRunCount;
 	int lNodes;
 	int lQueryCount;
-	for (int i = 0; i < lDepth.size(); i++) {
+	for (size_t i = 0; i < lDepth.size(); i++) {
 		long long lSumLinkCut = 0;
 		long long lSumTrivial = 0;
 		lNodes = pow(2, lDepth[i] + 1) - 1;
@@ -427,7 +427,7 @@ void testUnbalancedBinary() {
 	LinkCutTree<int> lLct;
 	TrivialTree lTt;
 	std::vector<int> lDepth = { 25, 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800 };
-	for (int i = 1; i <= 16; i += 1) {
+	for (size_t i = 1; i <= 16; i += 1) {
 		lDepth.push_back(i * 1000);
 	}
 	std::vector<double> lRes(lDepth.size());
@@ -438,7 +438,7 @@ void testUnbalancedBinary() {
 	int lNodes;
 	long long lSumLinkCut;
 	long long lSumTrivial;
-	for (int i = 0; i < lDepth.size(); i++) {
+	for (size_t i = 0; i < lDepth.size(); i++) {
 		lSumLinkCut = 0;
 		lSumTrivial = 0;
 		lNodes = 2 * lDepth[i] + 1;
@@ -468,7 +468,7 @@ void testDegenerate() {
 	LinkCutTree<int> lLct;
 	TrivialTree lTt;
 	std::vector<int> lNodes = { 50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600 };
-	for (int i = 2; i <= 32; i += 2) {
+	for (size_t i = 2; i <= 32; i += 2) {
 		lNodes.push_back(i * 1000);
 	}
 	std::vector<double> lRes(lNodes.size());
@@ -476,7 +476,7 @@ void testDegenerate() {
 	std::vector<double> lTrivialPerf(lNodes.size());
 	int* lQueries;
 	int lRunCount;
-	for (int i = 0; i < lNodes.size(); i++) {
+	for (size_t i = 0; i < lNodes.size(); i++) {
 		long long lSumLinkCut = 0;
 		long long lSumTrivial = 0;
 		lLct = LctUtils::createLeftDeepTree(lNodes[i], &lTt);

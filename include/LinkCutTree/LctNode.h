@@ -4,6 +4,7 @@
 template<typename T> class LctNode {
 public:
 	LctNode(const T& aContent, int aID = idCounter++);
+    virtual ~LctNode() {}
 
 	const T& getContent() const;
 	T& getContent();
@@ -346,7 +347,7 @@ template<typename T> void LctNode<T>::splay() {
 				_parent->rotL();
 			}
 		}
-		// lefthanded zigzig 
+		// lefthanded zigzig
 		else if (_parent->_left == this && _parent->_parent->_left == _parent) {
 			_parent->_parent->rotR();
 			_parent->rotR();
